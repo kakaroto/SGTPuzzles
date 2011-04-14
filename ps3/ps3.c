@@ -1,3 +1,14 @@
+/*
+ * ps3.c : PS3 Puzzles homebrew main application code
+ *
+ * Copyright (C) Youness Alaoui (KaKaRoTo)
+ * Copyright (C) Clément Bouvet (TeToNN)
+ *
+ * This software is distributed under the terms of the GNU General Public
+ * License ("GPL") version 3, as published by the Free Software Foundation.
+ */
+
+
 #include <cairo/cairo.h>
 #include <ppu-lv2.h>
 #include <stdio.h>

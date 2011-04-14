@@ -1,3 +1,14 @@
+/*
+ * ps3drawingapi.c : PS3 Puzzles Drawing API
+ *
+ * Copyright (C) Youness Alaoui (KaKaRoTo)
+ * Copyright (C) Clément Bouvet (TeToNN)
+ * Copyright (C) Simon Tatham
+ *
+ * This software is distributed under the terms of the GNU General Public
+ * License ("GPL") version 3, as published by the Free Software Foundation.
+ */
+
 #include "ps3drawingapi.h"
 
 // front end drawing api

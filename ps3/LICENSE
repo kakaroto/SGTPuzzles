@@ -1,0 +1,3 @@
+This software is distributed under the GPL v3 license and the MIT License.
+The PS3 port is GPL while the original puzzles and cairo drawing API is under the MIT license.
+See LICENSE.MIT and LICENSE.GPL files for more information.
