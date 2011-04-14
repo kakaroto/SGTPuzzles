@@ -31,9 +31,10 @@ ps3_draw_text (void *handle, int x, int y, int fonttype, int fontsize,
 
   cairo_save(fe->cr);
   set_colour(fe, colour);
-  cairo_select_font_face(fe->cr, "Purisa",
+  cairo_select_font_face(fe->cr,
+      fonttype == FONT_FIXED ? "monospace" : "sans-serif",
       CAIRO_FONT_SLANT_NORMAL,
-      CAIRO_FONT_WEIGHT_NORMAL);
+      CAIRO_FONT_WEIGHT_BOLD);
 
   cairo_set_font_size(fe->cr, fontsize);
 
@@ -41,12 +42,12 @@ ps3_draw_text (void *handle, int x, int y, int fonttype, int fontsize,
   cairo_text_extents (fe->cr, text, &tex);
 
   if (align & ALIGN_VCENTRE)
-    y -= (fex.ascent + fex.descent) / 2;
+    y += (fex.ascent + fex.descent) / 2;
 
   if (align & ALIGN_HCENTRE)
-    x += tex.width / 2;
+    x -= tex.width / 2;
   else if (align & ALIGN_HRIGHT)
-    x += tex.width;
+    x -= tex.width;
 
   cairo_move_to(fe->cr, x, y);
   cairo_show_text (fe->cr, text);
