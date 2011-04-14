@@ -25,6 +25,31 @@ void
 ps3_draw_text (void *handle, int x, int y, int fonttype, int fontsize,
     int align, int colour, char *text)
 {
+  cairo_font_extents_t fe;
+  cairo_text_extents_t te;
+
+  cairo_save(fe->cr);
+  set_colour(fe, colour);
+  cairo_select_font_face(fe->cr, "Purisa",
+      CAIRO_FONT_SLANT_NORMAL,
+      CAIRO_FONT_WEIGHT_NORMAL);
+
+  cairo_set_font_size(cr, fontsize);
+
+  cairo_font_extents (cr, &fe);
+  cairo_text_extents (cr, &te);
+
+  if (align & ALIGN_VCENTRE)
+    y -= (fe.ascend + fe.descend) / 2;
+
+  if (align & ALIGN_HCENTRE)
+    rect.x += te.width / 2;
+  else if (align & ALIGN_HRIGHT)
+    rect.x += te.width;
+
+  cairo_move_to(cr, x, y);
+  cairo_show_text (cr, text);
+  cairo_restore(fe->cr);
 }
 
 void
