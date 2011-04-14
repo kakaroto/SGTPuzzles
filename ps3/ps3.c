@@ -95,6 +95,49 @@ activate_timer (frontend * fe)
   /* TODO: */
 }
 
+int
+handle_pad (frontend *fe, padData *paddata)
+{
+  static int prev_keyval = -1;
+  int keyval;
+
+  if (paddata->BTN_UP)
+    keyval = CURSOR_UP;
+  else if (paddata->BTN_DOWN)
+    keyval = CURSOR_DOWN;
+  else if (paddata->BTN_LEFT)
+    keyval = CURSOR_LEFT;
+  else if (paddata->BTN_RIGHT)
+    keyval = CURSOR_RIGHT;
+  else if (paddata->BTN_CROSS)
+    keyval = CURSOR_SELECT;
+  else if (paddata->BTN_CIRCLE)
+    keyval = CURSOR_SELECT2;
+  else if (paddata->BTN_L1)
+    keyval = 'u';
+  else if (paddata->BTN_R1)
+    keyval = 'r';
+  else if (paddata->BTN_R3)
+    keyval = 'n';
+  else if (paddata->BTN_START)
+    keyval = 'q';
+  else
+    keyval = -1;
+
+  /* TODO: allow long key presses */
+  if (keyval >= 0 && prev_keyval != keyval &&
+      !midend_process_key (fe->me, 0, 0, keyval))
+    return FALSE;
+
+  /* TODO: HACK ALERT: VERY bad, we must instead use the proper bboxing */
+  midend_force_redraw (fe->me);
+
+  /* Store previous key to avoid flooding the same keypress */
+  prev_keyval = keyval;
+
+  return TRUE;
+}
+
 frontend *
 new_window ()
 {
@@ -182,9 +225,8 @@ main (int argc, char *argv[])	// TODO :D
     for (i = 0; i < MAX_PADS; i++) {
       if (padinfo.status[i]) {
 	ioPadGetData (i, &paddata);
-        if(paddata.BTN_START) {
+        if (handle_pad (fe, &paddata) == FALSE)
           goto end;
-        }
       }
     }
   }
