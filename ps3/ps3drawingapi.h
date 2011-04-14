@@ -9,9 +9,10 @@
  * License ("GPL") version 3, as published by the Free Software Foundation.
  */
 
-#include "ps3.h"
 #include <cairo/cairo.h>
 #include <assert.h>
+
+#include "puzzles.h"
 
 void ps3_draw_text (void *handle, int x, int y, int fonttype, int fontsize,
     int align, int colour, char *text);
@@ -23,8 +24,7 @@ void ps3_draw_circle (void *handle, int cx, int cy, int radius, int fillcolour,
     int outlinecolour);
 void ps3_draw_thick_line (void *handle, float thickness, float x1, float y1,
     float x2, float y2, int colour);
-void ps3_draw_update (void *handle, int x, int y, int w, int h);	// ??
-									// TODO
+void ps3_draw_update (void *handle, int x, int y, int w, int h);
 void ps3_clip (void *handle, int x, int y, int w, int h);
 void ps3_unclip (void *handle);
 void ps3_status_bar (void *handle, char *text);

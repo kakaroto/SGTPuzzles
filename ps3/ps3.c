@@ -25,7 +25,9 @@
 #include <time.h>
 #include <math.h>
 #include <sys/time.h>
+
 #include "ps3.h"
+#include "ps3drawingapi.h"
 
 void
 fatal (char *fmt, ...)

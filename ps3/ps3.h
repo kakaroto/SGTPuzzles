@@ -10,6 +10,9 @@
 
 
 #pragma once
+#include <sysutil/video.h>
+#include <rsx/gcm_sys.h>
+#include <rsx/rsx.h>
 #include <ppu-types.h>
 #include "rsxutil.h"
 #include "puzzles.h"
@@ -22,7 +25,7 @@ struct blitter {
  // ps3 frontend
 struct frontend {
   gcmContextData *context;	// rsx buffer context
-  VideoResolution res;		// Screen Resolution
+  videoResolution res;		// Screen Resolution
 
   int currentBuffer;
   rsxBuffer *buffers[2];	// The buffer we will be drawing into.

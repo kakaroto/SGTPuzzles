@@ -83,8 +83,8 @@ makeBuffer (rsxBuffer * buffer, u16 width, u16 height, int id)
 int
 getResolution (u16 *width, u16 *height)
 {
-  VideoState state;
-  VideoResolution resolution;
+  videoState state;
+  videoResolution resolution;
 
   /* Get the state of the display */
   if (videoGetState (0, 0, &state) == 0 &&
@@ -103,9 +103,9 @@ gcmContextData *
 initScreen (void *host_addr, u32 size)
 {
   gcmContextData *context = NULL; /* Context to keep track of the RSX buffer. */
-  VideoState state;
-  VideoConfiguration vconfig;
-  VideoResolution res; /* Screen Resolution */
+  videoState state;
+  videoConfiguration vconfig;
+  videoResolution res; /* Screen Resolution */
 
   /* Initilise Reality, which sets up the command buffer and shared IO memory */
   context = rsxInit (CB_SIZE, size, host_addr);
@@ -125,7 +125,7 @@ initScreen (void *host_addr, u32 size)
     goto error;
 
   /* Configure the buffer format to xRGB */
-  memset (&vconfig, 0, sizeof(VideoConfiguration));
+  memset (&vconfig, 0, sizeof(videoConfiguration));
   vconfig.resolution = state.displayMode.resolution;
   vconfig.format = VIDEO_BUFFER_FORMAT_XRGB;
   vconfig.pitch = res.width * sizeof(u32);

@@ -10,8 +10,16 @@
  */
 
 #include "ps3drawingapi.h"
+#include "ps3.h"
 
-// front end drawing api
+/* front end drawing api */
+
+static void
+set_colour (frontend * fe, int colour)
+{
+  cairo_set_source_rgb (fe->cr, fe->colours[3 * colour + 0],
+      fe->colours[3 * colour + 1], fe->colours[3 * colour + 2]);
+}
 
 void
 ps3_draw_text (void *handle, int x, int y, int fonttype, int fontsize,
