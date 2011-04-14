@@ -43,5 +43,10 @@ struct frontend {
   int ncolours;
   cairo_t *cr;
   cairo_surface_t *image;
+  cairo_surface_t *surface;
   char *status_text;
+  int x;
+  int y;
+  int width;
+  int height;
 };

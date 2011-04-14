@@ -101,8 +101,10 @@ new_window ()
   frontend *fe;
   u16 width;
   u16 height;
-  int x, y;
+  int w, h;
   int i;
+
+  DEBUG ("Creating new window\n");
 
   fe = snew (frontend);
   fe->currentBuffer = 0;
@@ -127,10 +129,22 @@ new_window ()
   /* Start the game */
   midend_new_game (fe->me);
 
-  /* TODO: probably need to store where the puzzle gets positioned */
-  x = width;
-  y = width;
-  midend_size(fe->me, &x, &y, FALSE);
+  DEBUG ("Screen resolution is %dx%d\n", width, height);
+  if (midend_wants_statusbar(fe->me))
+    height -= 50;
+
+  w = width * 0.8;
+  h = height * 0.9;
+
+  midend_size(fe->me, &w, &h, FALSE);
+  fe->width = w;
+  fe->height = h;
+
+  fe->x = (width - w) / 2;
+  fe->y = (height - h) / 2;
+
+  DEBUG ("Puzzle is %dx%d at %d-%d\n", w, h, fe->x, fe->y);
+
   midend_force_redraw(fe->me);
 
   return fe;

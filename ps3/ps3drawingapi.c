@@ -184,8 +184,12 @@ ps3_start_draw (void *handle)
   /* Wait for the last flip to finish, so we can draw to the old buffer */
   waitFlip ();
 
-  fe->image = cairo_image_surface_create_for_data ((u8 *) buffer->ptr,
+  fe->surface = cairo_image_surface_create_for_data ((u8 *) buffer->ptr,
       CAIRO_FORMAT_ARGB32, buffer->width, buffer->height, buffer->width * 4);
+  assert (fe->surface != NULL);
+
+  fe->image = cairo_surface_create_for_rectangle  (fe->surface,
+      fe->x, fe->y, fe->width, fe->height);
   assert (fe->image != NULL);
 
   fe->cr = cairo_create (fe->image);
@@ -207,8 +211,11 @@ ps3_end_draw (void *handle)
   cairo_destroy (fe->cr);
   cairo_surface_finish (fe->image);
   cairo_surface_destroy (fe->image);
+  cairo_surface_finish (fe->surface);
+  cairo_surface_destroy (fe->surface);
   fe->cr = NULL;
   fe->image = NULL;
+  fe->surface = NULL;
 
   /* Flip buffer onto screen */
   flip (fe->context, fe->currentBuffer);
