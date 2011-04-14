@@ -17,21 +17,31 @@
 #include "rsxutil.h"
 #include "puzzles.h"
 
+#define MAX_BUFFERS 2
+
+#ifndef DISABLE_DEBUG
+#define DEBUG printf
+#else
+#define DEBUG(...) {}
+#endif
+
 struct blitter {
   cairo_surface_t *image;
   int w, h, x, y;
 };
 
- // ps3 frontend
 struct frontend {
-  gcmContextData *context;	// rsx buffer context
-  videoResolution res;		// Screen Resolution
+  /* RSX device context */
+  gcmContextData *context;
+  void *host_addr;
 
+  /* The buffers we will be drawing into. */
+  rsxBuffer buffers[MAX_BUFFERS];
   int currentBuffer;
-  rsxBuffer *buffers[2];	// The buffer we will be drawing into.
   midend *me;
   const float *colours;
   int ncolours;
   cairo_t *cr;
   cairo_surface_t *image;
+  char *status_text;
 };

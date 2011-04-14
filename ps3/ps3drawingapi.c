@@ -135,14 +135,14 @@ ps3_draw_thick_line (void *handle, float thickness, float x1, float y1,
 }
 
 void
-ps3_draw_update (void *handle, int x, int y, int w, int h)	// TODO ( ca
-								// permet de
-								// rafraichir
-								// que le
-								// rectangle
-								// (x,y,w,h) ?)
+ps3_draw_update (void *handle, int x, int y, int w, int h)
 {
+  /* The PS3 is fast enough to redraw the whole screen everytime,
+     no need for a bbox here
 
+     TODO: Make sure we don't actually need to set the bbox with
+     setRenderTarget
+  */
 }
 
 void
@@ -166,22 +166,26 @@ ps3_unclip (void *handle)
 void
 ps3_status_bar (void *handle, char *text)
 {
-  // TODO
+  frontend *fe = (frontend *) handle;
+
+  if (fe->status_text)
+    sfree (fe->status_text);
+  fe->status_text = dupstr (text);
 }
 
 void
 ps3_start_draw (void *handle)
 {
-  waitFlip ();			// Wait for the last flip to finish, so we can
-				// draw to the old buffer
-
   frontend *fe = (frontend *) handle;
+  rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
 
-  rsxBuffer *buffer = fe->buffers[fe->currentBuffer];
+  DEBUG ("Starting to draw\n");
+  setRenderTarget(fe->context, buffer);
+  /* Wait for the last flip to finish, so we can draw to the old buffer */
+  waitFlip ();
 
-  fe->image =
-      cairo_image_surface_create_for_data ((u8 *) buffer->ptr,
-      CAIRO_FORMAT_RGB24, buffer->width, buffer->height, buffer->width * 4);
+  fe->image = cairo_image_surface_create_for_data ((u8 *) buffer->ptr,
+      CAIRO_FORMAT_ARGB32, buffer->width, buffer->height, buffer->width * 4);
   assert (fe->image != NULL);
 
   fe->cr = cairo_create (fe->image);
@@ -189,6 +193,7 @@ ps3_start_draw (void *handle)
   cairo_set_antialias (fe->cr, CAIRO_ANTIALIAS_GRAY);
   cairo_set_line_width (fe->cr, 1.0);
   cairo_set_line_cap (fe->cr, CAIRO_LINE_CAP_SQUARE);
+  cairo_set_line_join (fe->cr, CAIRO_LINE_JOIN_ROUND);
 }
 
 void
@@ -196,14 +201,20 @@ ps3_end_draw (void *handle)
 {
   frontend *fe = (frontend *) handle;
 
-  // TODO : stuff
+  DEBUG ("Finished drawing\n");
 
-  cairo_destroy (fe->cr);	// Realease Surface
+  /* Release Surface */
+  cairo_destroy (fe->cr);
   cairo_surface_finish (fe->image);
-  cairo_surface_destroy (fe->image);	// Flush and destroy the cairo surface
+  cairo_surface_destroy (fe->image);
+  fe->cr = NULL;
+  fe->image = NULL;
 
-  flip (fe->context, fe->currentBuffer);	// Flip buffer onto screen
-  fe->currentBuffer = !fe->currentBuffer;
+  /* Flip buffer onto screen */
+  flip (fe->context, fe->currentBuffer);
+  fe->currentBuffer++;
+  if (fe->currentBuffer >= MAX_BUFFERS)
+    fe->currentBuffer = 0;
 }
 
 // blitted copy pasted :)
@@ -213,7 +224,7 @@ ps3_blitter_new (void *handle, int w, int h)
 {
   blitter *bl = snew (blitter);
 
-  bl->image = cairo_image_surface_create (CAIRO_FORMAT_RGB24, w, h);
+  bl->image = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
   bl->w = w;
   bl->h = h;
   return bl;

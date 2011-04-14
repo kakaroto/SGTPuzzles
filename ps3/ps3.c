@@ -84,28 +84,69 @@ const struct drawing_api ps3_drawing = {
 };
 
 void
-deactivate_timer (frontend * fe)	// TODO
+deactivate_timer (frontend * fe)
 {
-
+  /* TODO: */
 }
 
 void
-activate_timer (frontend * fe)	// TODO
+activate_timer (frontend * fe)
 {
-
+  /* TODO: */
 }
 
 frontend *
 new_window ()
 {
   frontend *fe;
+  u16 width;
+  u16 height;
+  int x, y;
+  int i;
 
   fe = snew (frontend);
+  fe->currentBuffer = 0;
+  fe->cr = NULL;
+  fe->image = NULL;
+  fe->status_text = NULL;
+
+  /* Allocate a 1Mb buffer, alligned to a 1Mb boundary
+   * to be our shared IO memory with the RSX. */
+  fe->host_addr = memalign (1024*1024, HOST_SIZE);
+  fe->context = initScreen (fe->host_addr, HOST_SIZE);
+
+  getResolution(&width, &height);
+  for (i = 0; i < MAX_BUFFERS; i++)
+    makeBuffer (&fe->buffers[i], width, height, i);
+
+  flip(fe->context, MAX_BUFFERS - 1);
 
   fe->me = midend_new (fe, &thegame, &ps3_drawing, fe);
+  fe->colours = midend_colours(fe->me, &fe->ncolours);
+
+  /* Start the game */
   midend_new_game (fe->me);
 
+  /* TODO: probably need to store where the puzzle gets positioned */
+  x = width;
+  y = width;
+  midend_size(fe->me, &x, &y, FALSE);
+  midend_force_redraw(fe->me);
+
   return fe;
+}
+
+void
+destroy_window (frontend *fe)
+{
+  int i;
+
+  gcmSetWaitFlip(fe->context);
+  for (i = 0; i < MAX_BUFFERS; i++)
+    rsxFree (fe->buffers[i].ptr);
+
+  rsxFinish (fe->context, 1);
+  free (fe->host_addr);
 }
 
 int
@@ -113,22 +154,31 @@ main (int argc, char *argv[])	// TODO :D
 {
   padInfo padinfo;
   padData paddata;
+  //int frame = 0;
   int i;
   frontend *fe;
 
   fe = new_window ();
-  // init rsx there
+  ioPadInit (7);
 
-  while (1)			// main loop
+  /* Main loop */
+  while (1)
   {
     ioPadGetInfo (&padinfo);
     for (i = 0; i < MAX_PADS; i++) {
       if (padinfo.status[i]) {
 	ioPadGetData (i, &paddata);
+        if(paddata.BTN_START) {
+          goto end;
+        }
       }
     }
   }
 
-  return 0;
+ end:
 
+  destroy_window (fe);
+  ioPadEnd();
+
+  return 0;
 }
