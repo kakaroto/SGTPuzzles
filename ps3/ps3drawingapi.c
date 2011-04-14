@@ -25,8 +25,9 @@ void
 ps3_draw_text (void *handle, int x, int y, int fonttype, int fontsize,
     int align, int colour, char *text)
 {
-  cairo_font_extents_t fe;
-  cairo_text_extents_t te;
+  frontend *fe = (frontend *) handle;
+  cairo_font_extents_t fex;
+  cairo_text_extents_t tex;
 
   cairo_save(fe->cr);
   set_colour(fe, colour);
@@ -34,21 +35,21 @@ ps3_draw_text (void *handle, int x, int y, int fonttype, int fontsize,
       CAIRO_FONT_SLANT_NORMAL,
       CAIRO_FONT_WEIGHT_NORMAL);
 
-  cairo_set_font_size(cr, fontsize);
+  cairo_set_font_size(fe->cr, fontsize);
 
-  cairo_font_extents (cr, &fe);
-  cairo_text_extents (cr, &te);
+  cairo_font_extents (fe->cr, &fex);
+  cairo_text_extents (fe->cr, text, &tex);
 
   if (align & ALIGN_VCENTRE)
-    y -= (fe.ascend + fe.descend) / 2;
+    y -= (fex.ascent + fex.descent) / 2;
 
   if (align & ALIGN_HCENTRE)
-    rect.x += te.width / 2;
+    x += tex.width / 2;
   else if (align & ALIGN_HRIGHT)
-    rect.x += te.width;
+    x += tex.width;
 
-  cairo_move_to(cr, x, y);
-  cairo_show_text (cr, text);
+  cairo_move_to(fe->cr, x, y);
+  cairo_show_text (fe->cr, text);
   cairo_restore(fe->cr);
 }
 
