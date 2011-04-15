@@ -12,6 +12,10 @@
 #include "ps3drawingapi.h"
 #include "ps3.h"
 
+static void draw_background (frontend *fe, cairo_t *cr);
+static void draw_puzzle (frontend *fe, cairo_t *cr);
+static void draw_status_bar (frontend *fe, cairo_t *cr);
+
 /* front end drawing api */
 
 static void
@@ -233,14 +237,11 @@ ps3_end_draw (void *handle)
   /* Release Surface */
   cairo_destroy (fe->cr);
   fe->cr = cairo_create (fe->surface);
-  cairo_set_source_surface (fe->cr, fe->image, fe->x, fe->y);
-  cairo_paint (fe->cr);
 
-  if (fe->status_bar) {
-    cairo_set_source_surface (cr, fe->status_bar,
-        fe->status_x, fe->status_y);
-    cairo_paint_with_alpha (cr, STATUS_BAR_ALPHA);
-  }
+  /* Draw our window */
+  draw_background (fe, fe->cr);
+  draw_puzzle (fe, fe->cr);
+  draw_status_bar (fe, fe->cr);
 
   cairo_destroy (fe->cr);
   cairo_surface_finish (fe->surface);
@@ -253,6 +254,28 @@ ps3_end_draw (void *handle)
   fe->currentBuffer++;
   if (fe->currentBuffer >= MAX_BUFFERS)
     fe->currentBuffer = 0;
+}
+
+static void
+draw_background (frontend *fe, cairo_t *cr)
+{
+}
+
+static void
+draw_puzzle (frontend *fe, cairo_t *cr)
+{
+  cairo_set_source_surface (cr, fe->image, fe->x, fe->y);
+  cairo_paint (cr);
+}
+
+static void
+draw_status_bar (frontend *fe, cairo_t *cr)
+{
+  if (fe->status_bar) {
+    cairo_set_source_surface (cr, fe->status_bar,
+        fe->status_x, fe->status_y);
+    cairo_paint_with_alpha (cr, STATUS_BAR_ALPHA);
+  }
 }
 
 // blitted copy pasted :)
