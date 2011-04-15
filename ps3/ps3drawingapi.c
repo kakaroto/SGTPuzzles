@@ -165,10 +165,36 @@ void
 ps3_status_bar (void *handle, char *text)
 {
   frontend *fe = (frontend *) handle;
+  cairo_t *cr;
+  float rgb[3];
+  cairo_font_extents_t fex;
+  int x, y;
 
-  if (fe->status_text)
-    sfree (fe->status_text);
-  fe->status_text = dupstr (text);
+  assert (fe->status_bar != NULL);
+
+  cr = cairo_create (fe->status_bar);
+  frontend_default_colour (fe, rgb);
+  cairo_set_source_rgb (cr, rgb[0], rgb[1], rgb[2]);
+  cairo_paint (cr);
+
+  cairo_select_font_face(cr,
+      "sans-serif",
+      CAIRO_FONT_SLANT_NORMAL,
+      CAIRO_FONT_WEIGHT_BOLD);
+
+  cairo_set_font_size(cr, STATUS_BAR_TEXT_SIZE);
+
+  cairo_font_extents (cr, &fex);
+
+  x = STATUS_BAR_IPAD;
+  y = STATUS_BAR_IPAD;
+  y += fex.ascent + fex.descent;
+
+  cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+  cairo_move_to(cr, x, y);
+  cairo_show_text (cr, text);
+
+  cairo_destroy (cr);
 }
 
 void
@@ -209,6 +235,13 @@ ps3_end_draw (void *handle)
   fe->cr = cairo_create (fe->surface);
   cairo_set_source_surface (fe->cr, fe->image, fe->x, fe->y);
   cairo_paint (fe->cr);
+
+  if (fe->status_bar) {
+    cairo_set_source_surface (cr, fe->status_bar,
+        fe->status_x, fe->status_y);
+    cairo_paint_with_alpha (cr, STATUS_BAR_ALPHA);
+  }
+
   cairo_destroy (fe->cr);
   cairo_surface_finish (fe->surface);
   cairo_surface_destroy (fe->surface);

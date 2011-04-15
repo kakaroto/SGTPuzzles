@@ -21,6 +21,13 @@
 
 #define MAX_BUFFERS 2
 
+#define STATUS_BAR_ALPHA 0.5
+#define STATUS_BAR_HEIGHT 30
+#define STATUS_BAR_PAD 10
+#define STATUS_BAR_IPAD 4
+#define STATUS_BAR_AREA_HEIGHT (STATUS_BAR_HEIGHT + (2 * STATUS_BAR_PAD))
+#define STATUS_BAR_TEXT_SIZE (STATUS_BAR_HEIGHT - (2 * STATUS_BAR_IPAD))
+
 #ifndef DISABLE_DEBUG
 #define DEBUG printf
 #else
@@ -46,11 +53,13 @@ struct frontend {
   cairo_t *cr;
   cairo_surface_t *image;
   cairo_surface_t *surface;
-  char *status_text;
+  cairo_surface_t *status_bar;
   int x;
   int y;
   int width;
   int height;
+  int status_x;
+  int status_y;
   struct timeval timer_last_ts;
   int timer_enabled;
 };

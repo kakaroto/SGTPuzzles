@@ -147,6 +147,7 @@ new_window ()
   u16 height;
   int w, h;
   int i;
+  int have_status = FALSE;
 
   DEBUG ("Creating new window\n");
 
@@ -154,7 +155,7 @@ new_window ()
   fe->currentBuffer = 0;
   fe->cr = NULL;
   fe->image = NULL;
-  fe->status_text = NULL;
+  fe->status_bar = NULL;
   fe->timer_enabled = FALSE;
 
   /* Allocate a 1Mb buffer, alligned to a 1Mb boundary
@@ -176,7 +177,10 @@ new_window ()
 
   DEBUG ("Screen resolution is %dx%d\n", width, height);
   if (midend_wants_statusbar(fe->me))
-    height -= 50;
+    have_status = TRUE;
+
+  if (have_status)
+    height -= STATUS_BAR_AREA_HEIGHT + 20;
 
   w = width * 0.8;
   h = height * 0.9;
@@ -189,6 +193,25 @@ new_window ()
   fe->y = (height - h) / 2;
 
   DEBUG ("Puzzle is %dx%d at %d-%d\n", w, h, fe->x, fe->y);
+
+  if (have_status) {
+    cairo_t *cr;
+    float rgb[3];
+
+    fe->status_x = fe->x;
+    fe->status_y = height + STATUS_BAR_PAD;
+    fe->status_bar = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
+        fe->width, STATUS_BAR_HEIGHT);
+    assert (fe->status_bar != NULL);
+
+    cr = cairo_create (fe->status_bar);
+    frontend_default_colour (fe, rgb);
+    cairo_set_source_rgb (cr, rgb[0], rgb[1], rgb[2]);
+    cairo_paint (cr);
+    cairo_destroy (cr);
+
+    DEBUG ("Having status bar at %d - %d", fe->status_x, fe->status_y);
+  }
 
   fe->image = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
       fe->width, fe->height);
@@ -206,6 +229,11 @@ destroy_window (frontend *fe)
 
   cairo_surface_finish (fe->image);
   cairo_surface_destroy (fe->image);
+
+  if (fe->status_bar) {
+    cairo_surface_finish (fe->status_bar);
+    cairo_surface_destroy (fe->status_bar);
+  }
 
   gcmSetWaitFlip(fe->context);
   for (i = 0; i < MAX_BUFFERS; i++)
