@@ -30,6 +30,7 @@
 #include "ps3drawingapi.h"
 
 #define SHOW_FPS TRUE
+// #define TEST_GRID
 
 void
 fatal (char *fmt, ...)
@@ -176,6 +177,9 @@ new_window ()
   fe->colours = midend_colours(fe->me, &fe->ncolours);
 
   /* Start the game */
+#ifdef TEST_GRID
+  midend_game_id (fe->me, dupstr ("4x4:2.1/1/2/2/1/2/2/1.2"));
+#endif
   midend_new_game (fe->me);
 
   DEBUG ("Screen resolution is %dx%d\n", width, height);
