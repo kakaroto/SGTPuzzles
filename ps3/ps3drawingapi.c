@@ -256,6 +256,13 @@ ps3_end_draw (void *handle)
     fe->currentBuffer = 0;
 }
 
+void
+ps3_refresh_draw (frontend *fe)
+{
+  ps3_start_draw (fe);
+  ps3_end_draw (fe);
+}
+
 static void
 draw_background (frontend *fe, cairo_t *cr)
 {
