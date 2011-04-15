@@ -29,7 +29,8 @@
 #include "ps3.h"
 #include "ps3drawingapi.h"
 
-#define SHOW_FPS TRUE
+#define SHOW_FPS FALSE
+#define STATUS_BAR_SHOW_FPS TRUE
 // #define TEST_GRID
 
 void
@@ -150,7 +151,7 @@ new_window ()
   u16 height;
   int w, h;
   int i;
-  int have_status = FALSE;
+  int have_status = STATUS_BAR_SHOW_FPS;
 
   DEBUG ("Creating new window\n");
 
@@ -297,17 +298,26 @@ main (int argc, char *argv[])
       }
     }
 
+#if SHOW_FPS || STATUS_BAR_SHOW_FPS
     /* Show FPS */
-    if (SHOW_FPS) {
+    {
       struct timeval now;
+      char fps[100];
 
-      ps3_refresh_draw (fe);
       gettimeofday(&now, NULL);
       elapsed = ((now.tv_usec - previous_time.tv_usec) * 0.000001 +
           (now.tv_sec - previous_time.tv_sec));
-      DEBUG ("FPS : %f\n", 1 / elapsed);
       previous_time = now;
+      ps3_refresh_draw (fe);
+#if SHOW_FPS
+      DEBUG ("FPS : %f\n", 1 / elapsed);
+#endif
+#if STATUS_BAR_SHOW_FPS
+      snprintf (fps, 100, "FPS : %f", 1 / elapsed);
+      ps3_status_bar (fe, fps);
+#endif
     }
+#endif
 
     frame++;
   }
