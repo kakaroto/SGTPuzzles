@@ -29,7 +29,14 @@
 #define STATUS_BAR_TEXT_SIZE (STATUS_BAR_HEIGHT - (2 * STATUS_BAR_IPAD))
 
 #ifndef DISABLE_DEBUG
-#define DEBUG printf
+#define DEBUG(...) { \
+  struct timeval debug_time; \
+  gettimeofday (&debug_time, NULL); \
+  printf ("[%02lu:%02lu:%03lu.%03lu] ", (debug_time.tv_sec % 3600) / 60, \
+      debug_time.tv_sec % 60, debug_time.tv_usec / 1000, \
+      debug_time.tv_usec % 1000);                        \
+  printf (__VA_ARGS__);                                           \
+  }
 #else
 #define DEBUG(...) {}
 #endif
