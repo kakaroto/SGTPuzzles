@@ -121,15 +121,15 @@ initScreen (void *host_addr, u32 size)
     goto error;
 
   /* Get the current resolution */
-  if (videoGetResolution (state.displayMode.resolution, &res) != 0)
+  if (videoGetResolution (VIDEO_RESOLUTION_480, &res) != 0)
     goto error;
 
   /* Configure the buffer format to xRGB */
   memset (&vconfig, 0, sizeof(videoConfiguration));
-  vconfig.resolution = state.displayMode.resolution;
+  vconfig.resolution = VIDEO_RESOLUTION_480;
   vconfig.format = VIDEO_BUFFER_FORMAT_XRGB;
   vconfig.pitch = res.width * sizeof(u32);
-  vconfig.aspect = state.displayMode.aspect;
+  vconfig.aspect = VIDEO_ASPECT_AUTO;
 
   waitRSXIdle(context);
 
