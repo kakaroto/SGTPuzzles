@@ -207,17 +207,11 @@ ps3_start_draw (void *handle)
   frontend *fe = (frontend *) handle;
   rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
 
-  DEBUG ("Starting to draw\n");
-
   assert (fe->image != NULL);
 
   setRenderTarget(fe->context, buffer);
   /* Wait for the last flip to finish, so we can draw to the old buffer */
   waitFlip ();
-
-  fe->surface = cairo_image_surface_create_for_data ((u8 *) buffer->ptr,
-      CAIRO_FORMAT_ARGB32, buffer->width, buffer->height, buffer->width * 4);
-  assert (fe->surface != NULL);
 
   fe->cr = cairo_create (fe->image);
 
@@ -231,23 +225,27 @@ void
 ps3_end_draw (void *handle)
 {
   frontend *fe = (frontend *) handle;
-
-  DEBUG ("Finished drawing\n");
+  rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
+  cairo_surface_t *surface;
+  cairo_t *cr;
 
   /* Release Surface */
   cairo_destroy (fe->cr);
-  fe->cr = cairo_create (fe->surface);
+  fe->cr = NULL;
 
   /* Draw our window */
-  draw_background (fe, fe->cr);
-  draw_puzzle (fe, fe->cr);
-  draw_status_bar (fe, fe->cr);
+  surface = cairo_image_surface_create_for_data ((u8 *) buffer->ptr,
+      CAIRO_FORMAT_ARGB32, buffer->width, buffer->height, buffer->width * 4);
+  assert (surface != NULL);
 
-  cairo_destroy (fe->cr);
-  cairo_surface_finish (fe->surface);
-  cairo_surface_destroy (fe->surface);
-  fe->cr = NULL;
-  fe->surface = NULL;
+  cr = cairo_create (surface);
+  draw_background (fe, cr);
+  draw_puzzle (fe, cr);
+  draw_status_bar (fe, cr);
+  cairo_destroy (cr);
+
+  cairo_surface_finish (surface);
+  cairo_surface_destroy (surface);
 
   /* Flip buffer onto screen */
   flip (fe->context, fe->currentBuffer);
