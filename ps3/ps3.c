@@ -86,13 +86,13 @@ const struct drawing_api ps3_drawing = {
 void
 deactivate_timer (frontend * fe)
 {
-  /* TODO: */
+  fe->timer_last_ts = 0;
 }
 
 void
 activate_timer (frontend * fe)
 {
-  /* TODO: */
+  fe->timer_last_ts = time (NULL);
 }
 
 int
@@ -220,6 +220,8 @@ main (int argc, char *argv[])	// TODO :D
   //int frame = 0;
   int i;
   frontend *fe;
+  time_t now;
+  double elapsed;
 
   fe = new_window ();
   ioPadInit (7);
@@ -233,6 +235,15 @@ main (int argc, char *argv[])	// TODO :D
 	ioPadGetData (i, &paddata);
         if (handle_pad (fe, &paddata) == FALSE)
           goto end;
+      }
+    }
+    /* Check for timer */
+    now = time (NULL);
+    if (fe->timer_last_ts != 0) {
+      elapsed = difftime (now, fe->timer_last_ts);
+      if (elapsed >= 0.02) {
+        midend_timer (fe->me, elapsed);
+        fe->timer_last_ts = now;
       }
     }
   }

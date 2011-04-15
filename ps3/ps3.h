@@ -14,6 +14,7 @@
 #include <rsx/gcm_sys.h>
 #include <rsx/rsx.h>
 #include <ppu-types.h>
+#include <sys/time.h>
 #include "rsxutil.h"
 #include "puzzles.h"
 
@@ -49,4 +50,5 @@ struct frontend {
   int y;
   int width;
   int height;
+  time_t timer_last_ts;
 };
