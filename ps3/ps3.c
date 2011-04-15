@@ -159,6 +159,7 @@ new_window ()
   fe->image = NULL;
   fe->status_bar = NULL;
   fe->timer_enabled = FALSE;
+  fe->background = NULL;
 
   /* Allocate a 1Mb buffer, alligned to a 1Mb boundary
    * to be our shared IO memory with the RSX. */
@@ -235,6 +236,11 @@ destroy_window (frontend *fe)
   if (fe->status_bar) {
     cairo_surface_finish (fe->status_bar);
     cairo_surface_destroy (fe->status_bar);
+  }
+
+  if (fe->background) {
+    cairo_surface_finish (fe->background);
+    cairo_surface_destroy (fe->background);
   }
 
   gcmSetWaitFlip(fe->context);

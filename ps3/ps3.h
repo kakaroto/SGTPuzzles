@@ -61,6 +61,7 @@ struct frontend {
   cairo_surface_t *image;
   cairo_surface_t *surface;
   cairo_surface_t *status_bar;
+  cairo_surface_t *background;
   int x;
   int y;
   int width;

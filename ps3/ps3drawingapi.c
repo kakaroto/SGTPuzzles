@@ -266,6 +266,33 @@ ps3_refresh_draw (frontend *fe)
 static void
 draw_background (frontend *fe, cairo_t *cr)
 {
+  /* Pre-cache the gradient background pattern into a cairo image surface.
+   * The cairo_pattern is a vector basically, so when painting the gradient
+   * into our surface, it needs to rasterize it, which makes the FPS drop
+   * to 6 or 7 FPS and makes the game unusable (misses controller input, and
+   * animations don't work anymore). So by pre-rasterizing it into an
+   * image surface, we can do the background paint very quickly and FPS should
+   * stay at 60fps or if we miss the VSYNC, drop to 30fps.
+   */
+  if (fe->background == NULL) {
+    cairo_pattern_t *linpat = NULL;
+    cairo_t *grad_cr = NULL;
+
+    fe->background = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+        fe->buffers[0].width, fe->buffers[0].height);
+
+    linpat = cairo_pattern_create_linear (0, 0,
+        fe->buffers[0].width, fe->buffers[0].height);
+    cairo_pattern_add_color_stop_rgb (linpat, 0, 0, 0.3, 0.8);
+    cairo_pattern_add_color_stop_rgb (linpat, 1, 0, 0.8, 0.3);
+
+    grad_cr = cairo_create (fe->background);
+    cairo_set_source (grad_cr, linpat);
+    cairo_paint (grad_cr);
+    cairo_destroy (grad_cr);
+  }
+  cairo_set_source_surface (cr, fe->background, 0, 0);
+  cairo_paint (cr);
 }
 
 static void
