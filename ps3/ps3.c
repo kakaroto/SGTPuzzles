@@ -213,7 +213,7 @@ destroy_window (frontend *fe)
 }
 
 int
-main (int argc, char *argv[])	// TODO :D
+main (int argc, char *argv[])
 {
   padInfo padinfo;
   padData paddata;
@@ -232,7 +232,7 @@ main (int argc, char *argv[])	// TODO :D
     ioPadGetInfo (&padinfo);
     for (i = 0; i < MAX_PADS; i++) {
       if (padinfo.status[i]) {
-	ioPadGetData (i, &paddata);
+        ioPadGetData (i, &paddata);
         if (handle_pad (fe, &paddata) == FALSE)
           goto end;
       }
