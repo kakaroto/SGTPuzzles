@@ -86,13 +86,17 @@ const struct drawing_api ps3_drawing = {
 void
 deactivate_timer (frontend * fe)
 {
-  fe->timer_last_ts = 0;
+  DEBUG ("Stopping timer\n");
+  fe->timer_enabled = FALSE;
 }
 
 void
 activate_timer (frontend * fe)
 {
-  fe->timer_last_ts = time (NULL);
+  gettimeofday(&fe->timer_last_ts, NULL);
+  fe->timer_enabled = TRUE;
+  DEBUG ("Starting timer at : %lu.%lu\n", fe->timer_last_ts.tv_sec,
+      fe->timer_last_ts.tv_usec);
 }
 
 int
@@ -151,6 +155,7 @@ new_window ()
   fe->cr = NULL;
   fe->image = NULL;
   fe->status_text = NULL;
+  fe->timer_enabled = FALSE;
 
   /* Allocate a 1Mb buffer, alligned to a 1Mb boundary
    * to be our shared IO memory with the RSX. */
@@ -238,12 +243,15 @@ main (int argc, char *argv[])
       }
     }
     /* Check for timer */
-    now = time (NULL);
-    if (fe->timer_last_ts != 0) {
-      elapsed = difftime (now, fe->timer_last_ts);
+    if (fe->timer_enabled) {
+      struct timeval now;
+
+      gettimeofday(&now, NULL);
+      elapsed = ((now.tv_usec - fe->timer_last_ts.tv_usec) * 0.000001 +
+          (now.tv_sec - fe->timer_last_ts.tv_sec));
       if (elapsed >= 0.02) {
+        gettimeofday(&fe->timer_last_ts, NULL);
         midend_timer (fe->me, elapsed);
-        fe->timer_last_ts = now;
       }
     }
   }
