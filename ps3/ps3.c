@@ -129,9 +129,6 @@ handle_pad (frontend *fe, padData *paddata)
       !midend_process_key (fe->me, 0, 0, keyval))
     return FALSE;
 
-  /* TODO: HACK ALERT: VERY bad, we must instead use the proper bboxing */
-  midend_force_redraw (fe->me);
-
   /* Store previous key to avoid flooding the same keypress */
   prev_keyval = keyval;
 
@@ -188,6 +185,10 @@ new_window ()
 
   DEBUG ("Puzzle is %dx%d at %d-%d\n", w, h, fe->x, fe->y);
 
+  fe->image = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
+      fe->width, fe->height);
+  assert (fe->image != NULL);
+
   midend_force_redraw(fe->me);
 
   return fe;
@@ -198,12 +199,17 @@ destroy_window (frontend *fe)
 {
   int i;
 
+  cairo_surface_finish (fe->image);
+  cairo_surface_destroy (fe->image);
+
   gcmSetWaitFlip(fe->context);
   for (i = 0; i < MAX_BUFFERS; i++)
     rsxFree (fe->buffers[i].ptr);
 
   rsxFinish (fe->context, 1);
   free (fe->host_addr);
+
+  sfree (fe);
 }
 
 int

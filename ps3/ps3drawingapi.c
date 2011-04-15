@@ -140,9 +140,6 @@ ps3_draw_update (void *handle, int x, int y, int w, int h)
 {
   /* The PS3 is fast enough to redraw the whole screen everytime,
      no need for a bbox here
-
-     TODO: Make sure we don't actually need to set the bbox with
-     setRenderTarget
   */
 }
 
@@ -181,6 +178,9 @@ ps3_start_draw (void *handle)
   rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
 
   DEBUG ("Starting to draw\n");
+
+  assert (fe->image != NULL);
+
   setRenderTarget(fe->context, buffer);
   /* Wait for the last flip to finish, so we can draw to the old buffer */
   waitFlip ();
@@ -188,10 +188,6 @@ ps3_start_draw (void *handle)
   fe->surface = cairo_image_surface_create_for_data ((u8 *) buffer->ptr,
       CAIRO_FORMAT_ARGB32, buffer->width, buffer->height, buffer->width * 4);
   assert (fe->surface != NULL);
-
-  fe->image = cairo_surface_create_for_rectangle  (fe->surface,
-      fe->x, fe->y, fe->width, fe->height);
-  assert (fe->image != NULL);
 
   fe->cr = cairo_create (fe->image);
 
@@ -210,12 +206,13 @@ ps3_end_draw (void *handle)
 
   /* Release Surface */
   cairo_destroy (fe->cr);
-  cairo_surface_finish (fe->image);
-  cairo_surface_destroy (fe->image);
+  fe->cr = cairo_create (fe->surface);
+  cairo_set_source_surface (fe->cr, fe->image, fe->x, fe->y);
+  cairo_paint (fe->cr);
+  cairo_destroy (fe->cr);
   cairo_surface_finish (fe->surface);
   cairo_surface_destroy (fe->surface);
   fe->cr = NULL;
-  fe->image = NULL;
   fe->surface = NULL;
 
   /* Flip buffer onto screen */
