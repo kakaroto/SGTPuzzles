@@ -29,6 +29,8 @@
 #include "ps3.h"
 #include "ps3drawingapi.h"
 
+#define SHOW_FPS TRUE
+
 void
 fatal (char *fmt, ...)
 {
@@ -250,14 +252,16 @@ main (int argc, char *argv[])
 {
   padInfo padinfo;
   padData paddata;
-  //int frame = 0;
+  int frame = 0;
+  struct timeval previous_time;
   int i;
   frontend *fe;
-  time_t now;
   double elapsed;
 
   fe = new_window ();
   ioPadInit (7);
+
+  gettimeofday (&previous_time, NULL);
 
   /* Main loop */
   while (1)
@@ -282,6 +286,20 @@ main (int argc, char *argv[])
         midend_timer (fe->me, elapsed);
       }
     }
+
+    /* Show FPS */
+    if (SHOW_FPS) {
+      struct timeval now;
+
+      ps3_refresh_draw (fe);
+      gettimeofday(&now, NULL);
+      elapsed = ((now.tv_usec - previous_time.tv_usec) * 0.000001 +
+          (now.tv_sec - previous_time.tv_sec));
+      DEBUG ("FPS : %f\n", 1 / elapsed);
+      previous_time = now;
+    }
+
+    frame++;
   }
 
  end:
