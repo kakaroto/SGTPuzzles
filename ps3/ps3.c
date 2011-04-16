@@ -174,7 +174,7 @@ new_window ()
   flipBuffer(fe->context, MAX_BUFFERS - 1);
 
 #ifdef COMBINED
-  fe->me = midend_new (fe, gamelist[0], &ps3_drawing, fe);
+  fe->me = midend_new (fe, gamelist[18], &ps3_drawing, fe);
 #else
   fe->me = midend_new (fe, &thegame, &ps3_drawing, fe);
 #endif

@@ -23,6 +23,8 @@ ps3_menu_new (int width, int height)
   menu->width = width;
   menu->height = height;
   menu->selection = -1;
+
+  return menu;
 }
 
 void
