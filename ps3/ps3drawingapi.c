@@ -290,6 +290,7 @@ draw_background (frontend *fe, cairo_t *cr)
     cairo_set_source (grad_cr, linpat);
     cairo_paint (grad_cr);
     cairo_destroy (grad_cr);
+    cairo_pattern_destroy (linpat);
   }
   cairo_set_source_surface (cr, fe->background, 0, 0);
   cairo_paint (cr);
