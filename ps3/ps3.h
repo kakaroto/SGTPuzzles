@@ -19,6 +19,7 @@
 #include "rsxutil.h"
 #include <cairo/cairo.h>
 
+#define COMBINED
 #include "puzzles.h"
 
 #define MAX_BUFFERS 2

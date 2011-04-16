@@ -173,7 +173,11 @@ new_window ()
 
   flipBuffer(fe->context, MAX_BUFFERS - 1);
 
+#ifdef COMBINED
+  fe->me = midend_new (fe, gamelist[0], &ps3_drawing, fe);
+#else
   fe->me = midend_new (fe, &thegame, &ps3_drawing, fe);
+#endif
   fe->colours = midend_colours(fe->me, &fe->ncolours);
 
   /* Start the game */
