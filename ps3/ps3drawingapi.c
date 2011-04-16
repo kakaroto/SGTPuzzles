@@ -9,6 +9,8 @@
  * License ("GPL") version 3, as published by the Free Software Foundation.
  */
 
+#include <assert.h>
+
 #include "ps3drawingapi.h"
 #include "ps3.h"
 

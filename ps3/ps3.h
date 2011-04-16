@@ -17,6 +17,8 @@
 #include <time.h>
 #include <sys/time.h>
 #include "rsxutil.h"
+#include <cairo/cairo.h>
+
 #include "puzzles.h"
 
 #define MAX_BUFFERS 2

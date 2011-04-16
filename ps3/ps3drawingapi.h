@@ -9,10 +9,10 @@
  * License ("GPL") version 3, as published by the Free Software Foundation.
  */
 
-#include <cairo/cairo.h>
-#include <assert.h>
+#ifndef __PS3_DRAWING_API_H__
+#define __PS3_DRAWING_API_H__
 
-#include "puzzles.h"
+#include "ps3.h"
 
 void ps3_draw_text (void *handle, int x, int y, int fonttype, int fontsize,
     int align, int colour, char *text);
@@ -36,3 +36,5 @@ blitter *ps3_blitter_new (void *handle, int w, int h);
 void ps3_blitter_free (void *handle, blitter * bl);
 void ps3_blitter_save (void *handle, blitter * bl, int x, int y);
 void ps3_blitter_load (void *handle, blitter * bl, int x, int y);
+
+#endif /* __PS3_DRAWING_API_H__ */
