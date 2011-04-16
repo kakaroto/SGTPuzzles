@@ -14,14 +14,18 @@
 !makefile cygwin Makefile.cyg
 !makefile osx Makefile.osx
 !makefile nestedvm Makefile.nestedvm
+!makefile ps3 Makefile.ps3
 
 !srcdir icons/
+!srcdir ps3/
 
 WINDOWS_COMMON = printing
          + user32.lib gdi32.lib comctl32.lib comdlg32.lib winspool.lib
 WINDOWS  = windows WINDOWS_COMMON
 COMMON   = midend drawing misc malloc random version
 GTK      = gtk printing ps
+PS3	 = ps3 ps3drawingapi rsxutil printing ps
+
 # Objects needed for auxiliary command-line programs.
 STANDALONE = nullfe random misc malloc
 
@@ -58,6 +62,8 @@ const int gamecount = lenof(gamelist);
 obfusc : [U] obfusc STANDALONE
 
 puzzles  : [G] windows[COMBINED] WINDOWS_COMMON COMMON ALL noicon.res
+
+Puzzles  : [PS] foo.c bar.c PS3 COMMON ALL
 
 # Mac OS X unified application containing all the puzzles.
 Puzzles  : [MX] osx osx.icns osx-info.plist COMMON ALL
@@ -202,4 +208,92 @@ PuzzleApplet.class: PuzzleApplet.java org
 	jar cfm $@ applet.manifest PuzzleEngine.class PuzzleApplet*.class org
 	echo '<applet archive="'$@'" code="PuzzleApplet" width="700" height="500"></applet>' >$*.html
 	mv PuzzleEngine.class $<
+!end
+
+
+!begin ps3
+#---------------------------------------------------------------------------------
+# Clear the implicit built in rules
+#---------------------------------------------------------------------------------
+.SUFFIXES:
+#---------------------------------------------------------------------------------
+ifeq ($(strip $(PSL1GHT)),)
+$(error "Please set PSL1GHT in your environment. export PSL1GHT=<path>")
+endif
+
+include $(PSL1GHT)/ppu_rules
+
+TITLE           :=      SGT Puzzles
+APPID           :=      SGTPUZZ
+CONTENTID       :=      UP0001-$(APPID)_00-0000000000000000
+SFOXML          :=      $(CURDIR)/ps3/sfo.xml
+ICON0           :=      $(CURDIR)/ps3/ICON0.PNG
+
+#---------------------------------------------------------------------------------
+# TARGET is the name of the output
+# BUILD is the directory where object files & intermediate files will be placed
+# SOURCES is a list of directories containing source code
+# INCLUDES is a list of directories containing extra header files
+#---------------------------------------------------------------------------------
+TARGET          :=      Puzzles
+DATA            :=      $(CURDIR)/data
+INCLUDES        :=      $(CURDIR)/ps3/ $(CURDIR)
+#---------------------------------------------------------------------------------
+
+#-----------------------------------------------------------
+# any extra libraries we wish to link with the project
+#-----------------------------------------------------------
+LIBS    :=      -lgcm_sys -lrsx -lsysutil -lio -lcairo -lm -lfreetype -lz -lpixman-1 -lrt -llv2
+#-----------------------------------------------------------
+# list of directories containing libraries, this must be the top level containing
+# include and lib
+#-----------------------------------------------------------
+LIBDIRS := $(PORTLIBS)
+
+LD = $(CC)
+
+#---------------------------------------------------------------------------------
+# build a list of include paths
+#---------------------------------------------------------------------------------
+INCLUDE  	:=      $(foreach dir,$(INCLUDES), -I$(CURDIR)/$(dir)) \
+                                        $(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+                                        $(LIBPSL1GHT_INC)
+
+#---------------------------------------------------------------------------------
+# build a list of library paths
+#---------------------------------------------------------------------------------
+LIBPATHS :=      $(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
+                                        $(LIBPSL1GHT_LIB)
+DEPSDIR  :=      $(CURDIR)
+
+.PHONY: $(TARGET) all clean
+
+$(TARGET): $(TARGET).elf $(TARGET).self
+
+#---------------------------------------------------------------------------------
+all: $(TARGET)
+
+run:
+	ps3load $(TARGET).self
+
+pkg: all $(TARGET).pkg
+
+clean:
+	rm -f *.o $(TARGET).elf $(TARGET).self
+
+%.pkg: %.self
+	mkdir -p pkg/USRDIR
+	cp $(ICON0) pkg/
+	$(SELF_NPDRM) $(basename $<).elf pkg/USRDIR/EBOOT.BIN $(CONTENTID) >> /dev/null
+	$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
+	if test -n "$(PKGFILES)" -a -d "$(PKGFILES)"; then cp -rf $(PKGFILES)/* pkg/; fi
+	$(PKG) --contentid $(CONTENTID) pkg/ $@ >> /dev/null
+	cp $@ $(basename $@).geohot.pkg
+	$(PACKAGE_FINALIZE) $(basename $@).geohot.pkg
+	rm -fr pkg
+
+#---------------------------------------------------------------------------------
+
+
+
 !end
