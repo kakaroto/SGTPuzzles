@@ -29,7 +29,7 @@ typedef struct
 /* Block the PPU thread untill the previous flip operation has finished. */
 void waitFlip (void);
 /* Flip a buffer onto the screen. Returns TRUE on success */
-int flip (gcmContextData *context, s32 buffer);
+int flipBuffer (gcmContextData *context, s32 buffer);
 /* Create a buffer to draw into and assign it to @id. Returns NULL on error */
 int makeBuffer (rsxBuffer * buffer, u16 width, u16 height, int id);
 /* Get current screen resolution. returns TRUE on success */

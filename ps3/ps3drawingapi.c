@@ -248,7 +248,7 @@ ps3_end_draw (void *handle)
   cairo_surface_destroy (surface);
 
   /* Flip buffer onto screen */
-  flip (fe->context, fe->currentBuffer);
+  flipBuffer (fe->context, fe->currentBuffer);
   fe->currentBuffer++;
   if (fe->currentBuffer >= MAX_BUFFERS)
     fe->currentBuffer = 0;

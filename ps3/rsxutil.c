@@ -35,7 +35,7 @@ waitFlip ()
 }
 
 int
-flip (gcmContextData *context, s32 buffer)
+flipBuffer (gcmContextData *context, s32 buffer)
 {
   if (gcmSetFlip (context, buffer) == 0) {
     rsxFlushBuffer (context);

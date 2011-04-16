@@ -172,7 +172,7 @@ new_window ()
   for (i = 0; i < MAX_BUFFERS; i++)
     makeBuffer (&fe->buffers[i], width, height, i);
 
-  flip(fe->context, MAX_BUFFERS - 1);
+  flipBuffer(fe->context, MAX_BUFFERS - 1);
 
   fe->me = midend_new (fe, &thegame, &ps3_drawing, fe);
   fe->colours = midend_colours(fe->me, &fe->ncolours);
