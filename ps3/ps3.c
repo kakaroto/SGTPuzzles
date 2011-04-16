@@ -29,7 +29,7 @@
 #include "ps3drawingapi.h"
 
 #define SHOW_FPS FALSE
-#define STATUS_BAR_SHOW_FPS TRUE
+#define STATUS_BAR_SHOW_FPS FALSE
 // #define TEST_GRID
 
 void
