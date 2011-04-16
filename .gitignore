@@ -1,5 +1,10 @@
 *~
-build
+*.d
+*.o
 *.elf
 *.self
 *.pkg
+list.c
+Makefile*
+version2.def
+wingames.lst
