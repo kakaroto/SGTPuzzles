@@ -106,7 +106,7 @@ int
 handle_pad (frontend *fe, padData *paddata)
 {
   static int prev_keyval = -1;
-  int keyval;
+  int keyval = -1;
 
   if (paddata->BTN_UP)
     keyval = CURSOR_UP;
@@ -128,16 +128,67 @@ handle_pad (frontend *fe, padData *paddata)
     keyval = 'n';
   else if (paddata->BTN_START)
     keyval = 'q';
+  else if (paddata->BTN_SELECT)
+    keyval = 's';
   else
     keyval = -1;
 
-  /* TODO: allow long key presses */
-  if (keyval >= 0 && prev_keyval != keyval &&
-      !midend_process_key (fe->me, 0, 0, keyval))
-    return FALSE;
+  if (prev_keyval == keyval)
+    return TRUE;
 
   /* Store previous key to avoid flooding the same keypress */
   prev_keyval = keyval;
+
+  if (fe->mode == MODE_PUZZLE) {
+    if (paddata->BTN_SELECT) {
+      fe->mode = MODE_TYPES_MENU;
+      ps3_refresh_draw (fe);
+      return TRUE;
+    }
+
+    /* TODO: allow long key presses */
+    if (keyval >= 0 && !midend_process_key (fe->me, 0, 0, keyval))
+      return FALSE;
+
+  } else {
+    if (paddata->BTN_START || paddata->BTN_CIRCLE) {
+      fe->mode = MODE_PUZZLE;
+      DEBUG ("Leaving menu mode\n");
+      if (fe->menu != NULL)
+        ps3_menu_free (fe->menu);
+      fe->menu = NULL;
+      ps3_refresh_draw (fe);
+      return TRUE;
+    } else if (paddata->BTN_CROSS) {
+      int id;
+
+      ps3_menu_get_selection (fe->menu, &id);
+      DEBUG ("Selected id %d in menu\n", id);
+      fe->mode = MODE_PUZZLE;
+      ps3_menu_free (fe->menu);
+      fe->menu = NULL;
+      ps3_refresh_draw (fe);
+    } else if (paddata->BTN_UP) {
+      int idx = ps3_menu_get_selection (fe->menu, NULL);
+
+      if (idx > 0)
+        idx--;
+
+      ps3_menu_change_selection (fe->menu, idx);
+      ps3_refresh_draw (fe);
+      return TRUE;
+    } else if (paddata->BTN_DOWN) {
+      int idx = ps3_menu_get_selection (fe->menu, NULL);
+
+      idx++;
+      if (idx >= fe->menu->nitems)
+        idx--;
+
+      ps3_menu_change_selection (fe->menu, idx);
+      ps3_refresh_draw (fe);
+      return TRUE;
+    }
+  }
 
   return TRUE;
 }
@@ -161,6 +212,8 @@ new_window ()
   fe->status_bar = NULL;
   fe->timer_enabled = FALSE;
   fe->background = NULL;
+  fe->mode = MODE_PUZZLE; /* TODO: default should be PUZZLE_MENU */
+  fe->menu = NULL;
 
   /* Allocate a 1Mb buffer, alligned to a 1Mb boundary
    * to be our shared IO memory with the RSX. */

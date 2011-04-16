@@ -17,6 +17,9 @@
 static void draw_background (frontend *fe, cairo_t *cr);
 static void draw_puzzle (frontend *fe, cairo_t *cr);
 static void draw_status_bar (frontend *fe, cairo_t *cr);
+static void draw_main_menu (frontend *fe, cairo_t *cr);
+static void draw_puzzle_menu (frontend *fe, cairo_t *cr);
+static void draw_types_menu (frontend *fe, cairo_t *cr);
 
 /* front end drawing api */
 
@@ -242,8 +245,16 @@ ps3_end_draw (void *handle)
 
   cr = cairo_create (surface);
   draw_background (fe, cr);
-  draw_puzzle (fe, cr);
-  draw_status_bar (fe, cr);
+  if (fe->mode != MODE_PUZZLE_MENU) {
+    draw_puzzle (fe, cr);
+    draw_status_bar (fe, cr);
+    if (fe->mode == MODE_TYPES_MENU)
+      draw_types_menu (fe, cr);
+    else if (fe->mode == MODE_MAIN_MENU)
+      draw_main_menu (fe, cr);
+  } else {
+    draw_puzzle_menu (fe, cr);
+  }
   cairo_destroy (cr);
 
   cairo_surface_finish (surface);
@@ -311,6 +322,43 @@ draw_status_bar (frontend *fe, cairo_t *cr)
         fe->status_x, fe->status_y);
     cairo_paint_with_alpha (cr, STATUS_BAR_ALPHA);
   }
+}
+
+static void
+draw_main_menu (frontend *fe, cairo_t *cr)
+{
+  /* TODO */
+}
+
+static void
+draw_types_menu (frontend *fe, cairo_t *cr)
+{
+  /* TODO */
+  if (fe->menu == NULL) {
+    int i;
+
+    fe->menu = ps3_menu_new (300, 40);
+    for (i = 0; i < gamecount; i++) {
+      ps3_menu_add_item (fe->menu, NULL, gamelist[i]->name, i);
+    }
+    ps3_menu_set_selection (fe->menu, 0);
+  }
+  cairo_save (cr);
+  cairo_set_source_rgba (cr, 0.3, 0.3, 0.3, 0.5);
+  cairo_paint (cr);
+  cairo_set_source_rgba (cr, 0.3, 0.5, 0.3, 0.8);
+  cairo_rectangle (cr, 190, 20, 340, 440);
+  cairo_fill (cr);
+  cairo_rectangle (cr, 210, 40, 300, 400);
+  cairo_clip (cr);
+  ps3_menu_draw (fe->menu, cr, 210, 40);
+  cairo_restore (cr);
+}
+
+static void
+draw_puzzle_menu (frontend *fe, cairo_t *cr)
+{
+  /* TODO */
 }
 
 // blitted copy pasted :)

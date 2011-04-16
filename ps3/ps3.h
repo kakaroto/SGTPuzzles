@@ -16,11 +16,13 @@
 #include <ppu-types.h>
 #include <time.h>
 #include <sys/time.h>
-#include "rsxutil.h"
 #include <cairo/cairo.h>
 
 #define COMBINED
 #include "puzzles.h"
+
+#include "rsxutil.h"
+#include "menu.h"
 
 #define MAX_BUFFERS 2
 
@@ -43,6 +45,13 @@
 #else
 #define DEBUG(...) {}
 #endif
+
+typedef enum {
+  MODE_PUZZLE,
+  MODE_PUZZLE_MENU,
+  MODE_MAIN_MENU,
+  MODE_TYPES_MENU,
+} GameMode;
 
 struct blitter {
   cairo_surface_t *image;
@@ -72,4 +81,6 @@ struct frontend {
   int status_y;
   struct timeval timer_last_ts;
   int timer_enabled;
+  GameMode mode;
+  Ps3Menu *menu;
 };
