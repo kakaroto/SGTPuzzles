@@ -251,7 +251,8 @@ handle_pad (frontend *fe, padData *paddata)
         midend_set_params (fe->me,params);
         midend_new_game(fe->me);
 
-        ps3_refresh_draw (fe);
+        /* TODO: Need to reset our puzzle size */
+        midend_force_redraw(fe->me);
       } else if (fe->mode == MODE_MAIN_MENU) {
         if(selected_item == 0) {
           /* New */
@@ -266,7 +267,8 @@ handle_pad (frontend *fe, padData *paddata)
         fe->mode = MODE_PUZZLE;
         ps3_menu_free (fe->menu);
         fe->menu = NULL;
-        ps3_refresh_draw (fe);
+
+        midend_force_redraw(fe->me);
       }
     } else if (paddata->BTN_UP) {
       ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_UP,&bbox);
