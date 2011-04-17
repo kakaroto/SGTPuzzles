@@ -13,7 +13,7 @@
 
 #include "ps3drawingapi.h"
 #include "ps3.h"
-
+#include "puzzles.h"
 static void draw_background (frontend *fe, cairo_t *cr);
 static void draw_puzzle (frontend *fe, cairo_t *cr);
 static void draw_status_bar (frontend *fe, cairo_t *cr);
@@ -328,31 +328,27 @@ static void
 draw_main_menu (frontend *fe, cairo_t *cr)
 {
   /* TODO */
+  int selectedItem;
+  const int  menuHeight = 35;
+  if (fe->menu == NULL) {
+    int i;
+
+    fe->menu = ps3_menu_new (fe->image,1,-1,50,menuHeight); /* Infinite horizontal scrollable menu */
+    for (i = 0; i < gamecount; i++) {
+      ps3_menu_add_item (fe->menu, NULL, gamelist[i]->name, 25);
+    }
+  }
+
+  ps3_menu_redraw (fe->menu);
+
+  selectedItem=fe->menu->selection;
+  /* TODO implement menu shwing selection idea ! */
 }
 
 static void
 draw_types_menu (frontend *fe, cairo_t *cr)
 {
   /* TODO */
-  if (fe->menu == NULL) {
-    int i;
-
-    fe->menu = ps3_menu_new (300, 40);
-    for (i = 0; i < gamecount; i++) {
-      ps3_menu_add_item (fe->menu, NULL, gamelist[i]->name, i);
-    }
-    ps3_menu_set_selection (fe->menu, 0);
-  }
-  cairo_save (cr);
-  cairo_set_source_rgba (cr, 0.3, 0.3, 0.3, 0.5);
-  cairo_paint (cr);
-  cairo_set_source_rgba (cr, 0.3, 0.5, 0.3, 0.8);
-  cairo_rectangle (cr, 190, 20, 340, 440);
-  cairo_fill (cr);
-  cairo_rectangle (cr, 210, 40, 300, 400);
-  cairo_clip (cr);
-  ps3_menu_draw (fe->menu, cr, 210, 40);
-  cairo_restore (cr);
 }
 
 static void

@@ -107,6 +107,7 @@ handle_pad (frontend *fe, padData *paddata)
 {
   static int prev_keyval = -1;
   int keyval = -1;
+  Ps3MenuRectangle bbox;
 
   if (paddata->BTN_UP)
     keyval = CURSOR_UP;
@@ -152,40 +153,40 @@ handle_pad (frontend *fe, padData *paddata)
 
   } else {
     if (paddata->BTN_START || paddata->BTN_CIRCLE) {
-      fe->mode = MODE_PUZZLE;
-      DEBUG ("Leaving menu mode\n");
-      if (fe->menu != NULL)
-        ps3_menu_free (fe->menu);
-      fe->menu = NULL;
-      ps3_refresh_draw (fe);
-      return TRUE;
+      if(fe->mode != MODE_PUZZLE_MENU){
+	fe->mode = MODE_PUZZLE;
+	DEBUG ("Leaving menu mode\n");
+	if (fe->menu != NULL)
+	  ps3_menu_free (fe->menu);
+	fe->menu = NULL;
+	ps3_refresh_draw (fe);
+	return TRUE;
+      }
     } else if (paddata->BTN_CROSS) {
-      int id;
-
-      ps3_menu_get_selection (fe->menu, &id);
-      DEBUG ("Selected id %d in menu\n", id);
+      int selectedItem = fe->menu->selection;
+      if(fe->mode == MODE_PUZZLE_MENU){/* Game selected */
+	create_midend(fe,gamelist[selectedItem]);
+      }
+      else if (fe->mode == MODE_TYPES_MENU){ /* Type selected */
+	/* TODO */
+      }
       fe->mode = MODE_PUZZLE;
       ps3_menu_free (fe->menu);
       fe->menu = NULL;
       ps3_refresh_draw (fe);
     } else if (paddata->BTN_UP) {
-      int idx = ps3_menu_get_selection (fe->menu, NULL);
-
-      if (idx > 0)
-        idx--;
-
-      ps3_menu_change_selection (fe->menu, idx);
-      ps3_refresh_draw (fe);
+      ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_UP,&bbox);
       return TRUE;
     } else if (paddata->BTN_DOWN) {
-      int idx = ps3_menu_get_selection (fe->menu, NULL);
-
-      idx++;
-      if (idx >= fe->menu->nitems)
-        idx--;
-
-      ps3_menu_change_selection (fe->menu, idx);
-      ps3_refresh_draw (fe);
+      ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_DOWN,&bbox);
+      return TRUE;
+    }
+    else if (paddata->BTN_LEFT) {
+      ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_LEFT,&bbox);
+      return TRUE;
+    }
+    else if (paddata->BTN_RIGHT) {
+      ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_RIGHT,&bbox);
       return TRUE;
     }
   }
@@ -193,53 +194,23 @@ handle_pad (frontend *fe, padData *paddata)
   return TRUE;
 }
 
-frontend *
-new_window ()
+void
+create_midend(frontend* fe,const game* game)
 {
-  frontend *fe;
-  u16 width;
-  u16 height;
-  int w, h;
-  int i;
   int have_status = STATUS_BAR_SHOW_FPS;
-
-  DEBUG ("Creating new window\n");
-
-  fe = snew (frontend);
-  fe->currentBuffer = 0;
-  fe->cr = NULL;
-  fe->image = NULL;
-  fe->status_bar = NULL;
-  fe->timer_enabled = FALSE;
-  fe->background = NULL;
-  fe->mode = MODE_PUZZLE; /* TODO: default should be PUZZLE_MENU */
-  fe->menu = NULL;
-
-  /* Allocate a 1Mb buffer, alligned to a 1Mb boundary
-   * to be our shared IO memory with the RSX. */
-  fe->host_addr = memalign (1024*1024, HOST_SIZE);
-  fe->context = initScreen (fe->host_addr, HOST_SIZE);
+  u16  width,height;
+  int w, h;
 
   getResolution(&width, &height);
-  for (i = 0; i < MAX_BUFFERS; i++)
-    makeBuffer (&fe->buffers[i], width, height, i);
 
-  flipBuffer(fe->context, MAX_BUFFERS - 1);
+  if(fe->me) {
+    midend_free(fe->me);
+  }
 
-#ifdef COMBINED
-  fe->me = midend_new (fe, gamelist[18], &ps3_drawing, fe);
-#else
-  fe->me = midend_new (fe, &thegame, &ps3_drawing, fe);
-#endif
+  fe->me = midend_new (fe, game, &ps3_drawing, fe);
   fe->colours = midend_colours(fe->me, &fe->ncolours);
-
-  /* Start the game */
-#ifdef TEST_GRID
-  midend_game_id (fe->me, dupstr ("4x4:2.1/1/2/2/1/2/2/1.2"));
-#endif
   midend_new_game (fe->me);
 
-  DEBUG ("Screen resolution is %dx%d\n", width, height);
   if (midend_wants_statusbar(fe->me))
     have_status = TRUE;
 
@@ -250,6 +221,7 @@ new_window ()
   h = height * 0.9;
 
   midend_size(fe->me, &w, &h, FALSE);
+
   fe->width = w;
   fe->height = h;
 
@@ -265,7 +237,7 @@ new_window ()
     fe->status_x = fe->x;
     fe->status_y = height + STATUS_BAR_PAD;
     fe->status_bar = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-        fe->width, STATUS_BAR_HEIGHT);
+						  fe->width, STATUS_BAR_HEIGHT);
     assert (fe->status_bar != NULL);
 
     cr = cairo_create (fe->status_bar);
@@ -277,11 +249,58 @@ new_window ()
     DEBUG ("Having status bar at %d - %d", fe->status_x, fe->status_y);
   }
 
+  if(fe->image){
+    cairo_surface_finish (fe->image);
+    cairo_surface_destroy (fe->image);
+    fe->image = NULL;
+  }
   fe->image = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      fe->width, fe->height);
+					   fe->width, fe->height);
   assert (fe->image != NULL);
 
+  fe->mode = MODE_PUZZLE;
+
   midend_force_redraw(fe->me);
+}
+
+frontend *
+new_window ()
+{
+  frontend *fe;
+  u16 width;
+  u16 height;
+  int i;
+
+  DEBUG ("Creating new window\n");
+
+  fe = snew (frontend);
+  fe->currentBuffer = 0;
+  fe->cr = NULL;
+  fe->image = NULL;
+  fe->status_bar = NULL;
+  fe->timer_enabled = FALSE;
+  fe->background = NULL;
+  fe->mode = MODE_PUZZLE_MENU; 
+  fe->menu = NULL;
+  fe->me = NULL;
+
+  /* Allocate a 1Mb buffer, alligned to a 1Mb boundary
+   * to be our shared IO memory with the RSX. */
+  fe->host_addr = memalign (1024*1024, HOST_SIZE);
+  fe->context = initScreen (fe->host_addr, HOST_SIZE);
+
+  getResolution(&width, &height);
+  for (i = 0; i < MAX_BUFFERS; i++)
+    makeBuffer (&fe->buffers[i], width, height, i);
+
+  flipBuffer(fe->context, MAX_BUFFERS - 1);
+
+  fe->width = width;
+  fe->height = height;
+
+  fe->image = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
+					   fe->width, fe->height);
+  assert (fe->image != NULL);
 
   return fe;
 }
@@ -342,7 +361,7 @@ main (int argc, char *argv[])
       }
     }
     /* Check for timer */
-    if (fe->timer_enabled) {
+    if (fe->timer_enabled && fe->me) {
       struct timeval now;
 
       gettimeofday(&now, NULL);
