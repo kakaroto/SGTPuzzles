@@ -73,6 +73,8 @@ _draw_item (Ps3Menu *menu, Ps3MenuItem *item,
   cairo_clip (cr);
   _draw_text (menu, item, cr, x + item->ipad_x, y + item->ipad_y);
   cairo_restore (cr);
+
+	return 0;
 }
 
 Ps3Menu *
@@ -85,7 +87,7 @@ ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
 
   /* Infinite scrolling horizontally and vertically is not practical,
    * return error  */
-  if (rows == columns == -1)
+  if (rows == -1 && columns == -1)
     return NULL;
 
   menu = malloc (sizeof(Ps3Menu));
@@ -183,7 +185,7 @@ ps3_menu_handle_input (Ps3Menu *menu, Ps3MenuInput input,
   int row, new_row, start_row, max_rows, max_visible_rows;
   int column, new_column, start_column, max_columns, max_visible_columns;
   int width, height;
-  int old_selection = menu->selection;
+ /* int old_selection = menu->selection; unused */
 
   width = cairo_image_surface_get_width (menu->surface);
   height = cairo_image_surface_get_height (menu->surface);
