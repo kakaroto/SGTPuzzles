@@ -328,12 +328,24 @@ static void
 draw_main_menu (frontend *fe, cairo_t *cr)
 {
   /* TODO */
+  cairo_surface_t *surface;
+
+  ps3_menu_redraw (fe->menu);
+  surface = ps3_menu_get_surface (fe->menu);
+  cairo_set_source_surface (cr, surface, 0, 0);
+  cairo_paint (cr);
 }
 
 static void
 draw_types_menu (frontend *fe, cairo_t *cr)
 {
   /* TODO */
+  cairo_surface_t *surface;
+
+  ps3_menu_redraw (fe->menu);
+  surface = ps3_menu_get_surface (fe->menu);
+  cairo_set_source_surface (cr, surface, 0, 0);
+  cairo_paint (cr);
 }
 
 static void
