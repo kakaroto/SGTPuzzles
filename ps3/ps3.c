@@ -67,7 +67,7 @@ create_types_menu (frontend * fe){
   surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
       fe->width, fe->height);
 
-  fe->menu = ps3_menu_new (surface, -1, 2, 300, 40);
+  fe->menu = ps3_menu_new (surface, -1, 1, 300, 40);
   n = midend_num_presets(fe->me);
 
   if(n <= 0){ /* No types */
@@ -94,7 +94,7 @@ create_main_menu (frontend * fe){
       fe->width, fe->height);
 
   /* Infinite vertical scrollable menu */
-  fe->menu = ps3_menu_new (surface, -1, 2, 300, 40);
+  fe->menu = ps3_menu_new (surface, -1, 1, 300, 40);
   ps3_menu_add_item (fe->menu, NULL, "New", 25);
   ps3_menu_add_item (fe->menu, NULL, "Restart", 25);
   ps3_menu_add_item (fe->menu, NULL, "Solve", 25);
