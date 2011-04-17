@@ -328,21 +328,6 @@ static void
 draw_main_menu (frontend *fe, cairo_t *cr)
 {
   /* TODO */
-  int selectedItem;
-  const int  menuHeight = 35;
-  if (fe->menu == NULL) {
-    int i;
-
-    fe->menu = ps3_menu_new (fe->image,1,-1,50,menuHeight); /* Infinite horizontal scrollable menu */
-    for (i = 0; i < gamecount; i++) {
-      ps3_menu_add_item (fe->menu, NULL, gamelist[i]->name, 25);
-    }
-  }
-
-  ps3_menu_redraw (fe->menu);
-
-  selectedItem=fe->menu->selection;
-  /* TODO implement menu shwing selection idea ! */
 }
 
 static void
@@ -354,7 +339,21 @@ draw_types_menu (frontend *fe, cairo_t *cr)
 static void
 draw_puzzle_menu (frontend *fe, cairo_t *cr)
 {
-  /* TODO */
+  int selectedItem;
+  const int  menuHeight = 35;
+  if (fe->menu == NULL) {
+    int i;
+    /* Infinite horizontal scrollable menu */
+    fe->menu = ps3_menu_new (fe->image,1,-1,50,menuHeight);
+    for (i = 0; i < gamecount; i++) {
+      ps3_menu_add_item (fe->menu, NULL, gamelist[i]->name, 25);
+    }
+  }
+
+  ps3_menu_redraw (fe->menu);
+
+  selectedItem=fe->menu->selection;
+  /* TODO implement menu shwing selection idea ! */
 }
 
 // blitted copy pasted :)
