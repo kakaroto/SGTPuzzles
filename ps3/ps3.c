@@ -112,10 +112,8 @@ void create_puzzle_menu (frontend * fe){
   for (i = 0; i < gamecount; i++) {
     ps3_menu_add_item (fe->menu, NULL, gamelist[i]->name, 25);
   }
-
-  /* TODO: don't set fe->image, it's just a hack to make start_draw happy */
-  fe->image = surface;
 }
+
 void
 frontend_default_colour (frontend * fe, float *output)
 {

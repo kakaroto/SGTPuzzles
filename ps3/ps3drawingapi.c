@@ -207,36 +207,21 @@ ps3_status_bar (void *handle, char *text)
 }
 
 void
-ps3_start_draw (void *handle)
+ps3_prepare_buffer (frontend *fe)
 {
-  frontend *fe = (frontend *) handle;
   rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
-
-  assert (fe->image != NULL);
 
   setRenderTarget(fe->context, buffer);
   /* Wait for the last flip to finish, so we can draw to the old buffer */
   waitFlip ();
-
-  fe->cr = cairo_create (fe->image);
-
-  cairo_set_antialias (fe->cr, CAIRO_ANTIALIAS_GRAY);
-  cairo_set_line_width (fe->cr, 1.0);
-  cairo_set_line_cap (fe->cr, CAIRO_LINE_CAP_SQUARE);
-  cairo_set_line_join (fe->cr, CAIRO_LINE_JOIN_ROUND);
 }
 
 void
-ps3_end_draw (void *handle)
+ps3_render_buffer (frontend *fe)
 {
-  frontend *fe = (frontend *) handle;
   rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
   cairo_surface_t *surface;
   cairo_t *cr;
-
-  /* Release Surface */
-  cairo_destroy (fe->cr);
-  fe->cr = NULL;
 
   /* Draw our window */
   surface = cairo_image_surface_create_for_data ((u8 *) buffer->ptr,
@@ -268,10 +253,39 @@ ps3_end_draw (void *handle)
 }
 
 void
+ps3_start_draw (void *handle)
+{
+  frontend *fe = (frontend *) handle;
+
+  assert (fe->image != NULL);
+
+  ps3_prepare_buffer (fe);
+
+  fe->cr = cairo_create (fe->image);
+
+  cairo_set_antialias (fe->cr, CAIRO_ANTIALIAS_GRAY);
+  cairo_set_line_width (fe->cr, 1.0);
+  cairo_set_line_cap (fe->cr, CAIRO_LINE_CAP_SQUARE);
+  cairo_set_line_join (fe->cr, CAIRO_LINE_JOIN_ROUND);
+}
+
+void
+ps3_end_draw (void *handle)
+{
+  frontend *fe = (frontend *) handle;
+
+  /* Release Surface */
+  cairo_destroy (fe->cr);
+  fe->cr = NULL;
+
+  ps3_render_buffer (fe);
+}
+
+void
 ps3_refresh_draw (frontend *fe)
 {
-  ps3_start_draw (fe);
-  ps3_end_draw (fe);
+  ps3_prepare_buffer (fe);
+  ps3_render_buffer (fe);
 }
 
 static void
