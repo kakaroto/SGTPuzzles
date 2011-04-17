@@ -80,8 +80,8 @@ const struct drawing_api ps3_drawing = {
   ps3_blitter_free,
   ps3_blitter_save,
   ps3_blitter_load,
-  NULL, NULL, NULL, NULL, NULL, NULL,	/* {begin,end}_{doc,page,puzzle} */
-  NULL, NULL,			/* line_width, line_dotted */
+  NULL, NULL, NULL, NULL, NULL, NULL,   /* {begin,end}_{doc,page,puzzle} */
+  NULL, NULL,                   /* line_width, line_dotted */
   NULL,
   ps3_draw_thick_line,
 };
@@ -154,21 +154,21 @@ handle_pad (frontend *fe, padData *paddata)
   } else {
     if (paddata->BTN_START || paddata->BTN_CIRCLE) {
       if(fe->mode != MODE_PUZZLE_MENU){
-	fe->mode = MODE_PUZZLE;
-	DEBUG ("Leaving menu mode\n");
-	if (fe->menu != NULL)
-	  ps3_menu_free (fe->menu);
-	fe->menu = NULL;
-	ps3_refresh_draw (fe);
-	return TRUE;
+        fe->mode = MODE_PUZZLE;
+        DEBUG ("Leaving menu mode\n");
+        if (fe->menu != NULL)
+          ps3_menu_free (fe->menu);
+        fe->menu = NULL;
+        ps3_refresh_draw (fe);
+        return TRUE;
       }
     } else if (paddata->BTN_CROSS) {
       int selectedItem = fe->menu->selection;
       if(fe->mode == MODE_PUZZLE_MENU){/* Game selected */
-	create_midend(fe,gamelist[selectedItem]);
+        create_midend(fe,gamelist[selectedItem]);
       }
       else if (fe->mode == MODE_TYPES_MENU){ /* Type selected */
-	/* TODO */
+        /* TODO */
       }
       fe->mode = MODE_PUZZLE;
       ps3_menu_free (fe->menu);
@@ -237,7 +237,7 @@ create_midend(frontend* fe,const game* game)
     fe->status_x = fe->x;
     fe->status_y = height + STATUS_BAR_PAD;
     fe->status_bar = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-						  fe->width, STATUS_BAR_HEIGHT);
+                                                  fe->width, STATUS_BAR_HEIGHT);
     assert (fe->status_bar != NULL);
 
     cr = cairo_create (fe->status_bar);
@@ -255,7 +255,7 @@ create_midend(frontend* fe,const game* game)
     fe->image = NULL;
   }
   fe->image = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-					   fe->width, fe->height);
+                                           fe->width, fe->height);
   assert (fe->image != NULL);
 
   fe->mode = MODE_PUZZLE;
@@ -299,7 +299,7 @@ new_window ()
   fe->height = height;
 
   fe->image = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-					   fe->width, fe->height);
+                                           fe->width, fe->height);
   assert (fe->image != NULL);
 
   return fe;

@@ -13,7 +13,7 @@
 
 #include "ps3drawingapi.h"
 #include "ps3.h"
-#include "puzzles.h"
+
 static void draw_background (frontend *fe, cairo_t *cr);
 static void draw_puzzle (frontend *fe, cairo_t *cr);
 static void draw_status_bar (frontend *fe, cairo_t *cr);

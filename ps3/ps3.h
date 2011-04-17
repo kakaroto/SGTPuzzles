@@ -17,13 +17,13 @@
 #include <time.h>
 #include <sys/time.h>
 #include <cairo/cairo.h>
-#include "ps3menu.h"
 
 
 #define COMBINED
-
 #include "puzzles.h"
+
 #include "rsxutil.h"
+#include "ps3menu.h"
 
 #define MAX_BUFFERS 2
 

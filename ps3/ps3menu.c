@@ -185,7 +185,6 @@ ps3_menu_handle_input (Ps3Menu *menu, Ps3MenuInput input,
   int row, new_row, start_row, max_rows, max_visible_rows;
   int column, new_column, start_column, max_columns, max_visible_columns;
   int width, height;
- /* int old_selection = menu->selection; unused */
 
   width = cairo_image_surface_get_width (menu->surface);
   height = cairo_image_surface_get_height (menu->surface);
