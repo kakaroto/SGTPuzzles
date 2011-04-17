@@ -142,7 +142,14 @@ handle_pad (frontend *fe, padData *paddata)
 
   if (fe->mode == MODE_PUZZLE) {
     if (paddata->BTN_SELECT) {
+      /* TODO: need to create the menu */
       fe->mode = MODE_TYPES_MENU;
+      ps3_refresh_draw (fe);
+      return TRUE;
+    }
+    if (paddata->BTN_START) {
+      /* TODO: need to create the menu */
+      fe->mode = MODE_MAIN_MENU;
       ps3_refresh_draw (fe);
       return TRUE;
     }
@@ -164,29 +171,32 @@ handle_pad (frontend *fe, padData *paddata)
       }
     } else if (paddata->BTN_CROSS) {
       int selectedItem = fe->menu->selection;
-      if(fe->mode == MODE_PUZZLE_MENU){/* Game selected */
-        create_midend(fe,gamelist[selectedItem]);
-      }
-      else if (fe->mode == MODE_TYPES_MENU){ /* Type selected */
+      if(fe->mode == MODE_PUZZLE_MENU){
+        /* Game selected */
+        fe->mode = MODE_PUZZLE;
+        ps3_menu_free (fe->menu);
+        fe->menu = NULL;
+        create_midend(fe, gamelist[selectedItem]);
+      } else if (fe->mode == MODE_TYPES_MENU){
         /* TODO */
+        fe->mode = MODE_PUZZLE;
+        ps3_refresh_draw (fe);
       }
-      fe->mode = MODE_PUZZLE;
-      ps3_menu_free (fe->menu);
-      fe->menu = NULL;
-      ps3_refresh_draw (fe);
     } else if (paddata->BTN_UP) {
       ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_UP,&bbox);
+      ps3_refresh_draw (fe);
       return TRUE;
     } else if (paddata->BTN_DOWN) {
       ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_DOWN,&bbox);
+      ps3_refresh_draw (fe);
       return TRUE;
-    }
-    else if (paddata->BTN_LEFT) {
+    } else if (paddata->BTN_LEFT) {
       ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_LEFT,&bbox);
+      ps3_refresh_draw (fe);
       return TRUE;
-    }
-    else if (paddata->BTN_RIGHT) {
+    } else if (paddata->BTN_RIGHT) {
       ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_RIGHT,&bbox);
+      ps3_refresh_draw (fe);
       return TRUE;
     }
   }
@@ -270,6 +280,7 @@ new_window ()
   u16 width;
   u16 height;
   int i;
+  cairo_surface_t *surface;
 
   DEBUG ("Creating new window\n");
 
@@ -280,7 +291,6 @@ new_window ()
   fe->status_bar = NULL;
   fe->timer_enabled = FALSE;
   fe->background = NULL;
-  fe->mode = MODE_PUZZLE_MENU; 
   fe->menu = NULL;
   fe->me = NULL;
 
@@ -298,9 +308,19 @@ new_window ()
   fe->width = width;
   fe->height = height;
 
-  fe->image = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-                                           fe->width, fe->height);
-  assert (fe->image != NULL);
+  fe->mode = MODE_PUZZLE_MENU;
+  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
+      fe->width, fe->height);
+
+  /* Infinite vertical scrollable menu */
+  fe->menu = ps3_menu_new (surface, -1, 2, 300, 40);
+  for (i = 0; i < gamecount; i++) {
+    ps3_menu_add_item (fe->menu, NULL, gamelist[i]->name, 25);
+  }
+
+  /* TODO: don't set fe->image, it's just a hack to make start_draw happy */
+  fe->image = surface;
+  ps3_refresh_draw (fe);
 
   return fe;
 }

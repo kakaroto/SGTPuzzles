@@ -339,21 +339,12 @@ draw_types_menu (frontend *fe, cairo_t *cr)
 static void
 draw_puzzle_menu (frontend *fe, cairo_t *cr)
 {
-  int selectedItem;
-  const int  menuHeight = 35;
-  if (fe->menu == NULL) {
-    int i;
-    /* Infinite horizontal scrollable menu */
-    fe->menu = ps3_menu_new (fe->image,1,-1,50,menuHeight);
-    for (i = 0; i < gamecount; i++) {
-      ps3_menu_add_item (fe->menu, NULL, gamelist[i]->name, 25);
-    }
-  }
+  cairo_surface_t *surface;
 
   ps3_menu_redraw (fe->menu);
-
-  selectedItem=fe->menu->selection;
-  /* TODO implement menu shwing selection idea ! */
+  surface = ps3_menu_get_surface (fe->menu);
+  cairo_set_source_surface (cr, surface, 0, 0);
+  cairo_paint (cr);
 }
 
 // blitted copy pasted :)
