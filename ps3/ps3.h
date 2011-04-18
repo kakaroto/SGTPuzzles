@@ -67,6 +67,7 @@ struct frontend {
   /* The buffers we will be drawing into. */
   rsxBuffer buffers[MAX_BUFFERS];
   int currentBuffer;
+  const game* thegame;
   midend *me;
   const float *colours;
   int ncolours;

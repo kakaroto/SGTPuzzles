@@ -85,8 +85,47 @@ create_types_menu (frontend * fe){
   }
 }
 
+void create_puzzle_menu (frontend * fe);
+void destroy_midend (frontend * fe);
+
+void _change_game (frontend *fe)
+{
+  destroy_midend (fe);
+  create_puzzle_menu (fe);
+  ps3_refresh_draw(fe);
+}
+
+void _new_game (frontend *fe)
+{
+  midend_new_game (fe->me);
+  midend_force_redraw(fe->me);
+}
+
+void _restart_game (frontend *fe)
+{
+  midend_restart_game (fe->me);
+  midend_force_redraw(fe->me);
+}
+
+void _solve_game (frontend *fe)
+{
+  midend_solve (fe->me);
+  midend_force_redraw(fe->me);
+}
+
+struct {
+  const char *title;
+  void (*callback) (frontend *fe);
+} main_menu_items[] = {
+  {"Change game", _change_game},
+  {"New game", _new_game},
+  {"Restart game", _restart_game},
+  {"Solve", _solve_game},
+  {NULL, NULL},
+};
+
 void
-create_main_menu (frontend * fe){
+create_main_menu (frontend * fe) {
   cairo_surface_t *surface;
 
   fe->mode = MODE_MAIN_MENU;
@@ -95,9 +134,9 @@ create_main_menu (frontend * fe){
 
   /* Infinite vertical scrollable menu */
   fe->menu = ps3_menu_new (surface, -1, 1, 300, 40);
-  ps3_menu_add_item (fe->menu, NULL, "New", 25);
-  ps3_menu_add_item (fe->menu, NULL, "Restart", 25);
-  ps3_menu_add_item (fe->menu, NULL, "Solve", 25);
+  for (i = 0; main_menu_items[i].title; i++) {
+    ps3_menu_add_item (fe->menu, NULL, main_menu_items[i].title, 25);
+  }
 }
 
 void create_puzzle_menu (frontend * fe){
@@ -245,6 +284,8 @@ handle_pad (frontend *fe, padData *paddata)
         ps3_menu_free (fe->menu);
         fe->menu = NULL;
 
+        destroy_midend (fe);
+        create_midend (fe, fe->thegame);
         midend_fetch_preset(fe->me, selected_item, &name, &params);
         midend_set_params (fe->me,params);
         midend_new_game(fe->me);
@@ -252,21 +293,10 @@ handle_pad (frontend *fe, padData *paddata)
         /* TODO: Need to reset our puzzle size */
         midend_force_redraw(fe->me);
       } else if (fe->mode == MODE_MAIN_MENU) {
-        if(selected_item == 0) {
-          /* New */
-          midend_new_game (fe->me);
-        } else if(selected_item == 1) {
-          /* Restart */
-          midend_restart_game (fe->me);
-        }else if(selected_item == 2) {
-          /* Solve */
-          midend_solve (fe->me);
-        }
         fe->mode = MODE_PUZZLE;
         ps3_menu_free (fe->menu);
         fe->menu = NULL;
-
-        midend_force_redraw(fe->me);
+        main_menu_items[selected_item].callback (fe);
       }
     } else if (paddata->BTN_UP) {
       ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_UP,&bbox);
@@ -291,7 +321,7 @@ handle_pad (frontend *fe, padData *paddata)
 }
 
 void
-create_midend(frontend* fe,const game* game)
+create_midend(frontend* fe, const game* game)
 {
   int have_status = STATUS_BAR_SHOW_FPS;
   u16  width,height;
@@ -303,7 +333,8 @@ create_midend(frontend* fe,const game* game)
     midend_free(fe->me);
   }
 
-  fe->me = midend_new (fe, game, &ps3_drawing, fe);
+  fe->thegame = game;
+  fe->me = midend_new (fe, fe->thegame, &ps3_drawing, fe);
   fe->colours = midend_colours(fe->me, &fe->ncolours);
   midend_new_game (fe->me);
 
@@ -357,6 +388,26 @@ create_midend(frontend* fe,const game* game)
   fe->mode = MODE_PUZZLE;
 
   midend_force_redraw(fe->me);
+}
+
+void
+destroy_midend (frontend *fe)
+{
+  if(fe->me) {
+    midend_free(fe->me);
+    fe->me = NULL;
+  }
+
+  if (fe->status_bar) {
+    cairo_surface_destroy (fe->status_bar);
+    fe->status_bar = NULL;
+  }
+
+  if(fe->image){
+    cairo_surface_finish (fe->image);
+    cairo_surface_destroy (fe->image);
+    fe->image = NULL;
+  }
 }
 
 frontend *
