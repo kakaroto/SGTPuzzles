@@ -327,7 +327,7 @@ static void
 calculate_puzzle_size (frontend *fe)
 {
   int have_status = STATUS_BAR_SHOW_FPS;
-  u16  width,height;
+  u16  width, height;
   int w, h;
 
   getResolution(&width, &height);
@@ -352,7 +352,7 @@ calculate_puzzle_size (frontend *fe)
     cairo_t *cr;
     float rgb[3];
 
-    fe->status_x = fe->x;
+    fe->status_x = width * 0.05;
     fe->status_y = height + STATUS_BAR_PAD;
 
     if (fe->status_bar) {
@@ -362,7 +362,7 @@ calculate_puzzle_size (frontend *fe)
     }
 
     fe->status_bar = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-                                                  fe->width, STATUS_BAR_HEIGHT);
+        fe->width * 0.9, STATUS_BAR_HEIGHT);
     assert (fe->status_bar != NULL);
 
     cr = cairo_create (fe->status_bar);
