@@ -65,7 +65,7 @@ create_types_menu (frontend * fe){
 
   fe->mode = MODE_TYPES_MENU;
   surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      fe->width, fe->height);
+      306, fe->height * 0.7);
 
   fe->menu = ps3_menu_new (surface, -1, 1, 300, 40);
   n = midend_num_presets(fe->me);
@@ -127,10 +127,11 @@ struct {
 void
 create_main_menu (frontend * fe) {
   cairo_surface_t *surface;
+  int i;
 
   fe->mode = MODE_MAIN_MENU;
   surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      fe->width, fe->height);
+      306, fe->height * 0.7);
 
   /* Infinite vertical scrollable menu */
   fe->menu = ps3_menu_new (surface, -1, 1, 300, 40);
@@ -139,12 +140,13 @@ create_main_menu (frontend * fe) {
   }
 }
 
-void create_puzzle_menu (frontend * fe){
+void
+create_puzzle_menu (frontend * fe) {
   cairo_surface_t *surface;
   int i ;
   fe->mode = MODE_PUZZLE_MENU;
   surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      fe->width, fe->height);
+      612, fe->height * 0.9);
 
   /* Infinite vertical scrollable menu */
   fe->menu = ps3_menu_new (surface, -1, 2, 300, 40);
@@ -256,7 +258,7 @@ handle_pad (frontend *fe, padData *paddata)
 
   } else {
     if (paddata->BTN_START || paddata->BTN_CIRCLE) {
-      if(fe->mode == MODE_MAIN_MENU || fe->mode == MODE_TYPES_MENU){
+      if(fe->mode == MODE_MAIN_MENU || fe->mode == MODE_TYPES_MENU) {
         fe->mode = MODE_PUZZLE;
         DEBUG ("Leaving menu mode\n");
         if (fe->menu != NULL)
@@ -349,9 +351,6 @@ create_midend(frontend* fe, const game* game)
 
   midend_size(fe->me, &w, &h, FALSE);
 
-  fe->width = w;
-  fe->height = h;
-
   fe->x = (width - w) / 2;
   fe->y = (height - h) / 2;
 
@@ -373,7 +372,7 @@ create_midend(frontend* fe, const game* game)
     cairo_paint (cr);
     cairo_destroy (cr);
 
-    DEBUG ("Having status bar at %d - %d", fe->status_x, fe->status_y);
+    DEBUG ("Having status bar at %d - %d\n", fe->status_x, fe->status_y);
   }
 
   if(fe->image){
@@ -381,8 +380,7 @@ create_midend(frontend* fe, const game* game)
     cairo_surface_destroy (fe->image);
     fe->image = NULL;
   }
-  fe->image = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-                                           fe->width, fe->height);
+  fe->image = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32, w, h);
   assert (fe->image != NULL);
 
   fe->mode = MODE_PUZZLE;

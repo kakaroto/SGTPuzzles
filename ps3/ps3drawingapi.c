@@ -342,36 +342,52 @@ draw_status_bar (frontend *fe, cairo_t *cr)
 static void
 draw_main_menu (frontend *fe, cairo_t *cr)
 {
-  /* TODO */
   cairo_surface_t *surface;
+  int w, h;
 
   ps3_menu_redraw (fe->menu);
   surface = ps3_menu_get_surface (fe->menu);
-  cairo_set_source_surface (cr, surface, 0, 0);
+  w = cairo_image_surface_get_width (surface);
+  h = cairo_image_surface_get_height (surface);
+
+  cairo_set_source_surface (cr, surface, (fe->width - w) / 2,
+      (fe->height - h) / 2);
   cairo_paint (cr);
+  cairo_surface_destroy (surface);
 }
 
 static void
 draw_types_menu (frontend *fe, cairo_t *cr)
 {
-  /* TODO */
   cairo_surface_t *surface;
+  int w, h;
 
   ps3_menu_redraw (fe->menu);
   surface = ps3_menu_get_surface (fe->menu);
-  cairo_set_source_surface (cr, surface, 0, 0);
+  w = cairo_image_surface_get_width (surface);
+  h = cairo_image_surface_get_height (surface);
+
+  cairo_set_source_surface (cr, surface, (fe->width - w) / 2,
+      (fe->height - h) / 2);
   cairo_paint (cr);
+  cairo_surface_destroy (surface);
 }
 
 static void
 draw_puzzle_menu (frontend *fe, cairo_t *cr)
 {
   cairo_surface_t *surface;
+  int w, h;
 
   ps3_menu_redraw (fe->menu);
   surface = ps3_menu_get_surface (fe->menu);
-  cairo_set_source_surface (cr, surface, 0, 0);
+  w = cairo_image_surface_get_width (surface);
+  h = cairo_image_surface_get_height (surface);
+
+  cairo_set_source_surface (cr, surface, (fe->width - w) / 2,
+      (fe->height - h) / 2);
   cairo_paint (cr);
+  cairo_surface_destroy (surface);
 }
 
 // blitted copy pasted :)
