@@ -297,8 +297,10 @@ ps3_menu_handle_input (Ps3Menu *menu, Ps3MenuInput input,
     bbox->y = 0;
     bbox->width = cairo_image_surface_get_width (menu->surface);
     bbox->height = cairo_image_surface_get_height (menu->surface);
-  } else if (((new_row - start_row) >= max_visible_rows) ||
-      ((new_column - start_column) >= max_visible_columns)) {
+  } else if ((max_visible_rows > 0 &&
+          (new_row - start_row) >= max_visible_rows) ||
+      (max_visible_columns > 0 &&
+          (new_column - start_column) >= max_visible_columns)) {
     /* We go right/down to a hidden item */
     if (menu->columns != -1) {
       /* If we go on the right, we only need to shift by one column.
