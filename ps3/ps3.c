@@ -32,6 +32,8 @@
 #define STATUS_BAR_SHOW_FPS FALSE
 // #define TEST_GRID
 
+static void calculate_puzzle_size (frontend *fe);
+
 void
 fatal (char *fmt, ...)
 {
@@ -286,13 +288,12 @@ handle_pad (frontend *fe, padData *paddata)
         ps3_menu_free (fe->menu);
         fe->menu = NULL;
 
-        destroy_midend (fe);
-        create_midend (fe, fe->thegame);
         midend_fetch_preset(fe->me, selected_item, &name, &params);
         midend_set_params (fe->me,params);
         midend_new_game(fe->me);
 
-        /* TODO: Need to reset our puzzle size */
+        calculate_puzzle_size (fe);
+
         midend_force_redraw(fe->me);
       } else if (fe->mode == MODE_MAIN_MENU) {
         fe->mode = MODE_PUZZLE;
@@ -322,23 +323,14 @@ handle_pad (frontend *fe, padData *paddata)
   return TRUE;
 }
 
-void
-create_midend(frontend* fe, const game* game)
+static void
+calculate_puzzle_size (frontend *fe)
 {
   int have_status = STATUS_BAR_SHOW_FPS;
   u16  width,height;
   int w, h;
 
   getResolution(&width, &height);
-
-  if(fe->me) {
-    midend_free(fe->me);
-  }
-
-  fe->thegame = game;
-  fe->me = midend_new (fe, fe->thegame, &ps3_drawing, fe);
-  fe->colours = midend_colours(fe->me, &fe->ncolours);
-  midend_new_game (fe->me);
 
   if (midend_wants_statusbar(fe->me))
     have_status = TRUE;
@@ -362,6 +354,13 @@ create_midend(frontend* fe, const game* game)
 
     fe->status_x = fe->x;
     fe->status_y = height + STATUS_BAR_PAD;
+
+    if (fe->status_bar) {
+      cairo_surface_finish (fe->status_bar);
+      cairo_surface_destroy (fe->status_bar);
+      fe->status_bar = NULL;
+    }
+
     fe->status_bar = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
                                                   fe->width, STATUS_BAR_HEIGHT);
     assert (fe->status_bar != NULL);
@@ -375,13 +374,28 @@ create_midend(frontend* fe, const game* game)
     DEBUG ("Having status bar at %d - %d\n", fe->status_x, fe->status_y);
   }
 
-  if(fe->image){
+  if(fe->image) {
     cairo_surface_finish (fe->image);
     cairo_surface_destroy (fe->image);
     fe->image = NULL;
   }
   fe->image = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32, w, h);
   assert (fe->image != NULL);
+}
+
+void
+create_midend(frontend* fe, const game* game)
+{
+  if(fe->me) {
+    midend_free(fe->me);
+  }
+
+  fe->thegame = game;
+  fe->me = midend_new (fe, fe->thegame, &ps3_drawing, fe);
+  fe->colours = midend_colours(fe->me, &fe->ncolours);
+  midend_new_game (fe->me);
+
+  calculate_puzzle_size (fe);
 
   fe->mode = MODE_PUZZLE;
 
