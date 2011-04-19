@@ -55,21 +55,6 @@ typedef enum {
 } Ps3MenuTextAlignment;
 
 /**
- * Ps3MenuTextWrap:
- * @PS3_MENU_TEXT_WRAP_NONE: No wrapping, just draw the text and let the
- * clipping do its work
- * @PS3_MENU_TEXT_WRAP_WORD: Wrap the text on word boundaries
- * @PS3_MENU_TEXT_WRAP_TRUNCATE: If text is too long, truncate and add elipsis
- *
- * Defines how to wrap a text in a menu item, if the text is too long to fit.
- */
-typedef enum {
-  PS3_MENU_TEXT_WRAP_NONE,
-  PS3_MENU_TEXT_WRAP_WORD,
-  PS3_MENU_TEXT_WRAP_TRUNCATE,
-} Ps3MenuTextWrap;
-
-/**
  * Ps3MenuInput:
  * @PS3_MENU_INPUT_UP: Move the selection one row up
  * @PS3_MENU_INPUT_DOWN: Move the selection one row down
@@ -177,7 +162,6 @@ typedef int (*Ps3MenuDrawItemCb) (Ps3Menu *menu, Ps3MenuItem *item,
  * @text_size: The font size of the text to show
  * @text_color: The color to use for the menu item's text
  * @alignment: The alignment of the text
- * @wrap: How to wrap the text if too long to fit
  * @draw_cb: The drawing callback when the item needs to be drawn
  * @draw_data: User data for the drawing callback
  * @width: Item width
@@ -197,7 +181,6 @@ struct _Ps3MenuItem {
   int text_size;
   Ps3MenuColor text_color;
   Ps3MenuTextAlignment alignment;
-  Ps3MenuTextWrap wrap;
   Ps3MenuDrawItemCb draw_cb;
   void *draw_data;
   int width;

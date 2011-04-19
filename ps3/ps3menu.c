@@ -313,7 +313,6 @@ ps3_menu_add_item (Ps3Menu *menu, cairo_surface_t *image,
   item->text_size = text_size;
   item->text_color = (Ps3MenuColor) {1.0, 1.0, 1.0, 1.0};
   item->alignment = PS3_MENU_ALIGN_MIDDLE_CENTER;
-  item->wrap = PS3_MENU_TEXT_WRAP_NONE;
   item->draw_cb = _draw_item;
   item->draw_data = NULL;
   item->width = menu->default_item_width;
