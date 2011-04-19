@@ -584,7 +584,6 @@ main (int argc, char *argv[])
     /* Show FPS */
     {
       struct timeval now;
-      char fps[100];
 
       gettimeofday(&now, NULL);
       elapsed = ((now.tv_usec - previous_time.tv_usec) * 0.000001 +
@@ -595,8 +594,11 @@ main (int argc, char *argv[])
       DEBUG ("FPS : %f\n", 1 / elapsed);
 #endif
 #if STATUS_BAR_SHOW_FPS
-      snprintf (fps, 100, "FPS : %f", 1 / elapsed);
-      ps3_status_bar (fe, fps);
+      {
+        char fps[100];
+        snprintf (fps, 100, "FPS : %f", 1 / elapsed);
+        ps3_status_bar (fe, fps);
+      }
 #endif
     }
 #endif
