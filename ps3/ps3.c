@@ -497,7 +497,7 @@ event_handler (u64 status, u64 param, void * user_data)
 {
   int *exit = user_data;
 
-  printf ("Received event %d\n", status);
+  printf ("Received event %lu\n", status);
   if(status == SYSUTIL_EXIT_GAME)
     *exit = 1;
 }
