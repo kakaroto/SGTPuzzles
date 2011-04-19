@@ -18,6 +18,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <sysutil/video.h>
+#include <sysutil/sysutil.h>
 #include <rsx/gcm_sys.h>
 #include <rsx/rsx.h>
 #include <io/pad.h>
@@ -491,11 +492,21 @@ destroy_window (frontend *fe)
   sfree (fe);
 }
 
+static void
+eventHandle(u64 status, u64 param, void * user_data)
+{
+  int *exit = user_data;
+
+  if(status == SYSUTIL_EXIT_GAME)
+    *exit = 1;
+}
+
 int
 main (int argc, char *argv[])
 {
   padInfo padinfo;
   padData paddata;
+  int exit = 0;
   int frame = 0;
   struct timeval previous_time;
   int i;
@@ -504,11 +515,12 @@ main (int argc, char *argv[])
 
   fe = new_window ();
   ioPadInit (7);
+  sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0, eventHandle, &exit);
 
   gettimeofday (&previous_time, NULL);
 
   /* Main loop */
-  while (1)
+  while (exit == 0)
   {
     ioPadGetInfo (&padinfo);
     for (i = 0; i < MAX_PADS; i++) {
@@ -559,6 +571,7 @@ main (int argc, char *argv[])
 
   destroy_window (fe);
   ioPadEnd();
+  sysUtilUnregisterCallback(SYSUTIL_EVENT_SLOT0);
 
   return 0;
 }
