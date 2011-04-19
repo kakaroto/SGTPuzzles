@@ -9,6 +9,13 @@
 
 #include <cairo/cairo.h>
 
+#ifndef TRUE
+#define TRUE 1
+#endif
+#ifndef FALSE
+#define FALSE 0
+#endif
+
 enum {
   PS3_MENU_ALIGN_TOP = 0x01,
   PS3_MENU_ALIGN_MIDDLE = 0x02,
@@ -168,6 +175,7 @@ typedef int (*Ps3MenuDrawItemCb) (Ps3Menu *menu, Ps3MenuItem *item,
  * @height: Item height
  * @ipad_x: Internal horizontal padding
  * @ipad_y: Internal vertical padding
+ * @enabled: Wether or not the item is enabled or not (greyed)
  * @bg_image: Background image for non-selected item
  * @bg_sel_image: Background image for selected item
  *
@@ -187,6 +195,7 @@ struct _Ps3MenuItem {
   int height;
   int ipad_x;
   int ipad_y;
+  int enabled;
   cairo_surface_t *bg_image;
   cairo_surface_t *bg_sel_image;
 };
@@ -205,6 +214,7 @@ struct _Ps3MenuItem {
  * @pad_y: The vertical padding between items
  * @bg_image: The default background image for non selected items
  * @bg_sel_image: The default background image for selected items
+ * @disabled_image: An image to overlay on top of disabled items
  * @start_item: The first item to be drawn (!= 0 if scrolled)
  */
 struct _Ps3Menu {
@@ -220,6 +230,7 @@ struct _Ps3Menu {
   int pad_y;
   cairo_surface_t *bg_image;
   cairo_surface_t *bg_sel_image;
+  cairo_surface_t *disabled_image;
   /* Private */
   int start_item;
 };

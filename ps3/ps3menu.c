@@ -104,16 +104,24 @@ _draw_item (Ps3Menu *menu, Ps3MenuItem *item,
   }
   _draw_text (menu, item, cr, x + item->ipad_x, y + item->ipad_y,
       item->width - (2 * item->ipad_x), item->height - (2 * item->ipad_y));
+
   cairo_restore (cr);
 
-	return 0;
+  if (!item->enabled) {
+    cairo_set_source_surface (cr, menu->disabled_image, x, y);
+    cairo_paint (cr);
+  }
+
+
+  return 0;
 }
 
 #define BUTTON_ARC_PAD_X 10
 #define BUTTON_ARC_PAD_Y 10
 #define BUTTON_ARC_RADIUS 7
 
-void RGBToHSV(float r, float g, float b, float *h, float *s, float *v)
+static void
+RGBToHSV(float r, float g, float b, float *h, float *s, float *v)
 {
   float max, min, delta;
 
@@ -148,7 +156,8 @@ void RGBToHSV(float r, float g, float b, float *h, float *s, float *v)
   }
 }
 
-void HSVToRGB(float h, float s, float v, float *r, float *g, float *b)
+static void
+HSVToRGB(float h, float s, float v, float *r, float *g, float *b)
 {
   int i;
   float f, p, q, t;
@@ -256,6 +265,28 @@ ps3_menu_create_default_background (int width, int height,
   return surface;
 }
 
+
+static cairo_surface_t *
+_create_disabled_overlay (Ps3Menu *menu, int width, int height)
+{
+  cairo_surface_t *surface;
+  cairo_t *cr = NULL;
+
+  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+      width, height);
+
+  cr = cairo_create (surface);
+
+  cairo_set_source_rgba (cr, 0.7, 0.7, 0.7, 0.7);
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+  cairo_mask_surface (cr, menu->bg_image, 0, 0);
+
+  cairo_destroy (cr);
+  cairo_surface_flush (surface);
+
+  return surface;
+}
+
 Ps3Menu *
 ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
     int default_item_width, int default_item_height)
@@ -286,6 +317,8 @@ ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
       menu->default_item_width, menu->default_item_height, 0.0, 0.0, 0.0);
   menu->bg_sel_image = ps3_menu_create_default_background (
       menu->default_item_width, menu->default_item_height, 0.05, 0.30, 0.60);
+  menu->disabled_image = _create_disabled_overlay (menu,
+      menu->default_item_width, menu->default_item_height);
 
   return menu;
 }
@@ -319,14 +352,15 @@ ps3_menu_add_item (Ps3Menu *menu, cairo_surface_t *image,
   item->height = menu->default_item_height;
   item->ipad_x = PS3_MENU_DEFAULT_IPAD_X;
   item->ipad_y = PS3_MENU_DEFAULT_IPAD_Y;
+  item->enabled = TRUE;
   item->bg_image = cairo_surface_reference (menu->bg_image);
   item->bg_sel_image = cairo_surface_reference (menu->bg_sel_image);
 
   return item->index;
 }
 
-int
-ps3_menu_handle_input (Ps3Menu *menu, Ps3MenuInput input,
+static int
+_handle_input_internal (Ps3Menu *menu, Ps3MenuInput input,
     Ps3MenuRectangle *bbox)
 {
   int row, new_row, start_row, max_rows, max_visible_rows;
@@ -486,6 +520,43 @@ ps3_menu_handle_input (Ps3Menu *menu, Ps3MenuInput input,
   }
 
   return menu->selection;
+}
+
+int
+ps3_menu_handle_input (Ps3Menu *menu, Ps3MenuInput input,
+    Ps3MenuRectangle *bbox)
+{
+  int old_start_item;
+  int old_selection;
+  int new_selection;
+  int previous_selection;
+
+  old_start_item = menu->start_item;
+  old_selection = new_selection = previous_selection = menu->selection;
+
+  do {
+    new_selection = _handle_input_internal (menu, input, bbox);
+
+    /* Make sure this isn't the last possible item we can go to */
+    if (new_selection == previous_selection)
+      break;
+    previous_selection = new_selection;
+  } while (menu->items[new_selection].enabled == FALSE);
+
+  /* We were already on the last selectable item, then revert */
+  if (menu->items[new_selection].enabled == FALSE) {
+    menu->selection = new_selection = old_selection;
+    menu->start_item = old_start_item;
+
+    ps3_menu_redraw (menu);
+
+    bbox->x = 0;
+    bbox->y = 0;
+    bbox->width = cairo_image_surface_get_width (menu->surface);
+    bbox->height = cairo_image_surface_get_height (menu->surface);
+  }
+
+  return new_selection;
 }
 
 void
