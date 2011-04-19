@@ -45,23 +45,12 @@ _draw_text (Ps3Menu *menu, Ps3MenuItem *item, cairo_t *cr,
   else if (item->alignment & PS3_MENU_ALIGN_RIGHT)
     x += width - tex.width;
 
-  if (item->text_color.alpha < 1.0) {
-    cairo_set_source_rgb (cr, item->text_color.red, item->text_color.green,
-        item->text_color.blue);
-    cairo_move_to (cr, x, y);
-    cairo_text_path (cr, item->text);
-    /* Don't ask why, but cairo_show_text and cairo_set_source_rgba won't work
-     * with alpha, they'll just ignore it.. so need to clip the text path and use
-     * cairo_patin_with_alpha in order to get the alpha we want on the text */
-    cairo_clip (cr);
-    cairo_paint_with_alpha (cr, item->text_color.alpha);
-  } else {
-    cairo_set_source_rgb (cr, item->text_color.red, item->text_color.green,
-        item->text_color.blue);
-    cairo_move_to (cr, x, y);
-    cairo_show_text (cr, item->text);
-  }
-    cairo_restore (cr);
+
+  cairo_set_source_rgba (cr, item->text_color.red, item->text_color.green,
+      item->text_color.blue, item->text_color.alpha);
+  cairo_move_to (cr, x, y);
+  cairo_show_text (cr, item->text);
+  cairo_restore (cr);
 }
 
 static int
@@ -82,6 +71,7 @@ _draw_item (Ps3Menu *menu, Ps3MenuItem *item,
   else
     bg = item->bg_image;
 
+  cairo_save (cr);
   cairo_scale (cr, (float) item->width / cairo_image_surface_get_width (bg),
       (float) item->height / cairo_image_surface_get_height (bg));
   cairo_set_source_surface (cr, bg, x, y);
@@ -91,10 +81,11 @@ _draw_item (Ps3Menu *menu, Ps3MenuItem *item,
 
   /* Replace the destination with the source instead of overlaying */
   cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-
   cairo_paint (cr);
-  cairo_identity_matrix (cr);
+  cairo_restore (cr);
 
+  /* Reset the operator to what it should be */
+  cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
   cairo_rectangle (cr, x + item->ipad_x, y + item->ipad_y, width, height);
   cairo_clip (cr);
   if (item->image) {
