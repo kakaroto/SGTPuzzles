@@ -80,14 +80,100 @@ _draw_item (Ps3Menu *menu, Ps3MenuItem *item,
 
 #define BUTTON_ARC_PAD_X 10
 #define BUTTON_ARC_PAD_Y 10
-#define BUTTON_ARC_RADIUS 10
+#define BUTTON_ARC_RADIUS 7
+
+void RGBToHSV(float r, float g, float b, float *h, float *s, float *v)
+{
+  float max, min, delta;
+
+  max = fmaxf(r,(fmaxf(g,b)));
+  min = fminf(r,(fminf(g,b)));
+
+  *v = max;
+
+  /* Calculate saturation */
+
+  if (max != 0.0)
+    *s = (max-min)/max;
+  else
+    *s = 0.0;
+
+  *h = 0.0;
+
+  if (*s != 0.0) {
+    /* chromatic case: Saturation is not 0, so determine hue */
+    delta = max-min;
+
+    if (r == max)
+      *h = (g - b) / delta;
+    else if (g == max)
+      *h = 2.0 + (b - r) / delta;
+    else if (b == max)
+      *h = 4.0 + (r - g) / delta;
+
+    *h *= 60.0;
+    if (*h < 0.0)
+      *h += 360.0;
+  }
+}
+
+void HSVToRGB(float h, float s, float v, float *r, float *g, float *b)
+{
+  int i;
+  float f, p, q, t;
+
+  if(s == 0 ) {
+    *r = *g = *b = v;
+  } else {
+    h /= 60;                        // sector 0 to 5
+    i = (int) floor (h);
+    f = h - i;                      // factorial part of h
+    p = v * (1 - s);
+    q = v * (1 - s * f);
+    t = v * (1 - s * (1 - f));
+
+    switch (i) {
+      case 0:
+        *r = v;
+        *g = t;
+        *b = p;
+        break;
+      case 1:
+        *r = q;
+        *g = v;
+        *b = p;
+        break;
+      case 2:
+        *r = p;
+        *g = v;
+        *b = t;
+        break;
+      case 3:
+        *r = p;
+        *g = q;
+        *b = v;
+        break;
+      case 4:
+        *r = t;
+        *g = p;
+        *b = v;
+        break;
+      default:                // case 5:
+        *r = v;
+        *g = p;
+        *b = q;
+        break;
+    }
+  }
+}
 
 cairo_surface_t *
-_create_button_bg (Ps3Menu *menu, int active)
+_create_button_bg (Ps3Menu *menu, float r, float g, float b)
 {
   cairo_surface_t *surface;
   cairo_pattern_t *linpat = NULL;
   cairo_t *cr = NULL;
+  float h, s, v;
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
       menu->default_item_width, menu->default_item_height);
@@ -95,17 +181,18 @@ _create_button_bg (Ps3Menu *menu, int active)
   linpat = cairo_pattern_create_linear (menu->default_item_width, 0,
         menu->default_item_width, menu->default_item_height);
 
-  if (active) {
-    cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.0, 0.0, 1.0);
-    cairo_pattern_add_color_stop_rgb (linpat, 0.3, 0.0, 0.2, 1.0);
-    cairo_pattern_add_color_stop_rgb (linpat, 0.7, 0.0, 0.5, 1.0);
-    cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.0, 0.7, 1.0);
-  } else {
-    cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.0, 0.0, 0.0);
-    cairo_pattern_add_color_stop_rgb (linpat, 0.7, 0.3, 0.3, 0.3);
-    cairo_pattern_add_color_stop_rgb (linpat, 0.3, 0.5, 0.5, 0.5);
-    cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.7, 0.7, 0.7);
-  }
+  /* Transform the RGB into HSV so we can make it lighter */
+  RGBToHSV (r, g, b, &h, &s, &v);
+  cairo_pattern_add_color_stop_rgb (linpat, 0.0, r, g, b);
+  v += 0.1;
+  HSVToRGB (h, s, v, &r, &g, &b);
+  cairo_pattern_add_color_stop_rgb (linpat, 0.3, r, g, b);
+  v += 0.15;
+  HSVToRGB (h, s, v, &r, &g, &b);
+  cairo_pattern_add_color_stop_rgb (linpat, 0.7, r, g, b);
+  v += 0.2;
+  HSVToRGB (h, s, v, &r, &g, &b);
+  cairo_pattern_add_color_stop_rgb (linpat, 1.0, r, g, b);
 
   cr = cairo_create (surface);
 
@@ -125,7 +212,7 @@ _create_button_bg (Ps3Menu *menu, int active)
   cairo_set_source (cr, linpat);
   cairo_paint (cr);
 
-  cairo_set_source_rgba (cr, 1.0, 1.0, 1.0, 0.3);
+  cairo_set_source_rgba (cr, 1.0, 1.0, 1.0, 0.2);
   cairo_new_path (cr);
   cairo_arc (cr, menu->default_item_width / 2,
       -(menu->default_item_width * 4) + (menu->default_item_height / 2),
@@ -165,10 +252,9 @@ ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
   menu->pad_y = PS3_MENU_DEFAULT_PAD_Y;
   menu->start_item = 0;
 
-
-  menu->bg_image = _create_button_bg (menu, 0);
-
-  menu->bg_sel_image = _create_button_bg (menu, 1);
+  menu->bg_image = _create_button_bg (menu, 0.0, 0.0, 0.0);
+  //menu->bg_sel_image = _create_button_bg (menu, 0.05, 0.30, 0.60);
+  menu->bg_sel_image = _create_button_bg (menu, 0.00, 0.40, 0.0);
 
   return menu;
 }
