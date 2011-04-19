@@ -77,6 +77,11 @@ _draw_item (Ps3Menu *menu, Ps3MenuItem *item,
 
   cairo_rectangle (cr, x + item->ipad_x, y + item->ipad_y, width, height);
   cairo_clip (cr);
+  if (item->image) {
+    cairo_set_source_surface (cr, item->image,
+        x + item->ipad_x, y + item->ipad_y);
+    cairo_paint (cr);
+  }
   _draw_text (menu, item, cr, x + item->ipad_x, y + item->ipad_y);
   cairo_restore (cr);
 
@@ -281,8 +286,7 @@ ps3_menu_add_item (Ps3Menu *menu, cairo_surface_t *image,
   memset (item, 0, sizeof(Ps3MenuItem));
 
   item->index = menu->nitems - 1;
-  item->image = image;
-  item->image_position = PS3_MENU_IMAGE_POSITION_LEFT;
+  item->image = cairo_surface_reference (image);
   item->text = strdup (text);
   item->text_size = text_size;
   item->text_color = (Ps3MenuColor) {1.0, 1.0, 1.0, 0.8};
