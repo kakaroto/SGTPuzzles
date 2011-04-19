@@ -493,10 +493,11 @@ destroy_window (frontend *fe)
 }
 
 static void
-eventHandle(u64 status, u64 param, void * user_data)
+event_handler (u64 status, u64 param, void * user_data)
 {
   int *exit = user_data;
 
+  printf ("Received event %d\n", status);
   if(status == SYSUTIL_EXIT_GAME)
     *exit = 1;
 }
@@ -515,7 +516,7 @@ main (int argc, char *argv[])
 
   fe = new_window ();
   ioPadInit (7);
-  sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0, eventHandle, &exit);
+  sysUtilRegisterCallback (SYSUTIL_EVENT_SLOT0, event_handler, &exit);
 
   gettimeofday (&previous_time, NULL);
 
