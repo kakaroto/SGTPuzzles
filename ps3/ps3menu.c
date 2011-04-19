@@ -401,6 +401,13 @@ ps3_menu_handle_input (Ps3Menu *menu, Ps3MenuInput input,
     new_row = menu->selection % menu->rows;
   }
 
+  /*
+  printf ("row - %d - new %d - start %d - max %d - visible %d\n",
+      row, new_row, start_row, max_rows, max_visible_rows);
+  printf ("column - %d - new %d - start %d - max %d - visible %d\n",
+      column, new_column, start_column, max_columns, max_visible_columns);
+  */
+
   if (new_row < start_row || new_column < start_column) {
     /* We go left/up back to a non-displayed item */
     if (menu->columns != -1) {

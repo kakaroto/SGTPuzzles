@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 
   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   area = gtk_drawing_area_new();
-  gtk_widget_set_size_request (area, 640, 480);
+  gtk_widget_set_size_request (area, 450, 420);
   gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(area));
 
   g_signal_connect (G_OBJECT (window), "delete-event",
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
       412, 400);
-  menu = ps3_menu_new (surface, -1, 3, 200, 50);
+  menu = ps3_menu_new (surface, -1, 2, 200, 50);
 
   ps3_menu_add_item (menu, NULL, "Hello world", 15);
   ps3_menu_add_item (menu, NULL, "hello 2", 22);
