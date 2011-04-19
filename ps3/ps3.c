@@ -492,14 +492,23 @@ destroy_window (frontend *fe)
   sfree (fe);
 }
 
+typedef struct {
+  int opened;
+  int exit;
+} XMBEvent;
+
 static void
 event_handler (u64 status, u64 param, void * user_data)
 {
-  int *exit = user_data;
+  XMBEvent *xmb = user_data;
 
-  printf ("Received event %lu\n", status);
-  if(status == SYSUTIL_EXIT_GAME)
-    *exit = 1;
+  printf ("Received event %lX\n", status);
+  if (status == SYSUTIL_EXIT_GAME)
+    xmb->exit = 1;
+  else if (status == SYSUTIL_MENU_OPEN)
+    xmb->opened = 1;
+  else if (status == SYSUTIL_MENU_CLOSE)
+    xmb->opened = 0;
 }
 
 int
@@ -507,8 +516,8 @@ main (int argc, char *argv[])
 {
   padInfo padinfo;
   padData paddata;
-  int exit = 0;
   int frame = 0;
+  XMBEvent xmb = {0, 0};
   struct timeval previous_time;
   int i;
   frontend *fe;
@@ -516,12 +525,12 @@ main (int argc, char *argv[])
 
   fe = new_window ();
   ioPadInit (7);
-  sysUtilRegisterCallback (SYSUTIL_EVENT_SLOT0, event_handler, &exit);
+  sysUtilRegisterCallback (SYSUTIL_EVENT_SLOT0, event_handler, &xmb);
 
   gettimeofday (&previous_time, NULL);
 
   /* Main loop */
-  while (exit == 0)
+  while (xmb.exit == 0)
   {
     ioPadGetInfo (&padinfo);
     for (i = 0; i < MAX_PADS; i++) {
@@ -543,6 +552,13 @@ main (int argc, char *argv[])
         midend_timer (fe->me, elapsed);
       }
     }
+
+    /* When the XMB is opened, we need to flip buffers otherwise it will freeze.
+     * It seems the XMB needs to get our buffers so it can overlay itself on top.
+     * If we stop flipping buffers, the xmb will freeze.
+     */
+    if (xmb.opened)
+      ps3_refresh_draw (fe);
 
 #if SHOW_FPS || STATUS_BAR_SHOW_FPS
     /* Show FPS */
@@ -566,6 +582,8 @@ main (int argc, char *argv[])
 #endif
 
     frame++;
+    /* We need to poll for events */
+    sysUtilCheckCallback ();
   }
 
  end:
