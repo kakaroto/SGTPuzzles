@@ -45,16 +45,23 @@ _draw_text (Ps3Menu *menu, Ps3MenuItem *item, cairo_t *cr,
   else if (item->alignment & PS3_MENU_ALIGN_RIGHT)
     x += width - tex.width;
 
-  cairo_set_source_rgb (cr, item->text_color.red, item->text_color.green,
-      item->text_color.blue);
-  cairo_move_to (cr, x, y);
-  cairo_text_path (cr, item->text);
-  /* Don't ask why, but cairo_show_text and cairo_set_source_rgba won't work
-   * with alpha, they'll just ignore it.. so need to clip the text path and use
-   * cairo_patin_with_alpha in order to get the alpha we want on the text */
-  cairo_clip (cr);
-  cairo_paint_with_alpha (cr, item->text_color.alpha);
-  cairo_restore (cr);
+  if (item->text_color.alpha < 1.0) {
+    cairo_set_source_rgb (cr, item->text_color.red, item->text_color.green,
+        item->text_color.blue);
+    cairo_move_to (cr, x, y);
+    cairo_text_path (cr, item->text);
+    /* Don't ask why, but cairo_show_text and cairo_set_source_rgba won't work
+     * with alpha, they'll just ignore it.. so need to clip the text path and use
+     * cairo_patin_with_alpha in order to get the alpha we want on the text */
+    cairo_clip (cr);
+    cairo_paint_with_alpha (cr, item->text_color.alpha);
+  } else {
+    cairo_set_source_rgb (cr, item->text_color.red, item->text_color.green,
+        item->text_color.blue);
+    cairo_move_to (cr, x, y);
+    cairo_show_text (cr, item->text);
+  }
+    cairo_restore (cr);
 }
 
 static int
@@ -303,7 +310,7 @@ ps3_menu_add_item (Ps3Menu *menu, cairo_surface_t *image,
   item->image = cairo_surface_reference (image);
   item->text = strdup (text);
   item->text_size = text_size;
-  item->text_color = (Ps3MenuColor) {1.0, 1.0, 1.0, 0.8};
+  item->text_color = (Ps3MenuColor) {1.0, 1.0, 1.0, 1.0};
   item->alignment = PS3_MENU_ALIGN_MIDDLE_CENTER;
   item->wrap = PS3_MENU_TEXT_WRAP_NONE;
   item->draw_cb = _draw_item;
