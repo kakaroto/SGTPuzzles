@@ -195,7 +195,7 @@ _create_button_bg (Ps3Menu *menu, float r, float g, float b)
   v += 0.15;
   HSVToRGB (h, s, v, &r, &g, &b);
   cairo_pattern_add_color_stop_rgb (linpat, 0.7, r, g, b);
-  v += 0.2;
+  v += 0.25;
   HSVToRGB (h, s, v, &r, &g, &b);
   cairo_pattern_add_color_stop_rgb (linpat, 1.0, r, g, b);
 
@@ -259,7 +259,7 @@ ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
 
   menu->bg_image = _create_button_bg (menu, 0.0, 0.0, 0.0);
   //menu->bg_sel_image = _create_button_bg (menu, 0.05, 0.30, 0.60);
-  menu->bg_sel_image = _create_button_bg (menu, 0.00, 0.40, 0.0);
+  menu->bg_sel_image = _create_button_bg (menu, 0.0, 0.40, 0.0);
 
   return menu;
 }
