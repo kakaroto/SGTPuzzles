@@ -16,9 +16,10 @@
 
 static void
 _draw_text (Ps3Menu *menu, Ps3MenuItem *item, cairo_t *cr,
-    int x, int y)
+    int x, int y, int width, int height)
 {
   cairo_font_extents_t fex;
+  cairo_text_extents_t tex;
 
   cairo_save (cr);
   cairo_select_font_face(cr,
@@ -29,8 +30,20 @@ _draw_text (Ps3Menu *menu, Ps3MenuItem *item, cairo_t *cr,
   cairo_set_font_size(cr, item->text_size);
 
   cairo_font_extents (cr, &fex);
+  cairo_text_extents (cr, item->text, &tex);
 
-  y += fex.ascent + fex.descent;
+
+  if (item->alignment & PS3_MENU_ALIGN_TOP)
+    y += fex.ascent;
+  else if (item->alignment & PS3_MENU_ALIGN_MIDDLE)
+    y +=  (height + fex.ascent) / 2;
+  else if (item->alignment & PS3_MENU_ALIGN_BOTTOM)
+    y += height - fex.descent;
+
+  if (item->alignment & PS3_MENU_ALIGN_CENTER)
+    x += (width - tex.width) / 2;
+  else if (item->alignment & PS3_MENU_ALIGN_RIGHT)
+    x += width - tex.width;
 
   cairo_set_source_rgb (cr, item->text_color.red, item->text_color.green,
       item->text_color.blue);
@@ -82,7 +95,8 @@ _draw_item (Ps3Menu *menu, Ps3MenuItem *item,
         x + item->ipad_x, y + item->ipad_y);
     cairo_paint (cr);
   }
-  _draw_text (menu, item, cr, x + item->ipad_x, y + item->ipad_y);
+  _draw_text (menu, item, cr, x + item->ipad_x, y + item->ipad_y,
+      item->width - (2 * item->ipad_x), item->height - (2 * item->ipad_y));
   cairo_restore (cr);
 
 	return 0;
@@ -290,8 +304,8 @@ ps3_menu_add_item (Ps3Menu *menu, cairo_surface_t *image,
   item->text = strdup (text);
   item->text_size = text_size;
   item->text_color = (Ps3MenuColor) {1.0, 1.0, 1.0, 0.8};
-  item->alignment = PS3_MENU_ALIGN_MIDDLE_LEFT;
-  item->wrap = PS3_MENU_TEXT_WRAP_TRUNCATE;
+  item->alignment = PS3_MENU_ALIGN_MIDDLE_CENTER;
+  item->wrap = PS3_MENU_TEXT_WRAP_NONE;
   item->draw_cb = _draw_item;
   item->draw_data = NULL;
   item->width = menu->default_item_width;

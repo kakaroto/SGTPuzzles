@@ -85,12 +85,13 @@ int main(int argc, char **argv)
 {
   GtkWidget *window;
   GtkWidget *area;
+  int idx;
 
   gtk_init(&argc, &argv);
 
   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   area = gtk_drawing_area_new();
-  gtk_widget_set_size_request (area, 450, 420);
+  gtk_widget_set_size_request (area, 640, 420);
   gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(area));
 
   g_signal_connect (G_OBJECT (window), "delete-event",
@@ -104,28 +105,42 @@ int main(int argc, char **argv)
 
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-      412, 400);
-  menu = ps3_menu_new (surface, -1, 2, 200, 50);
+      620, 400);
+  menu = ps3_menu_new (surface, -1, 3, (620 - 12) / 3, 50);
 
-  ps3_menu_add_item (menu, NULL, "Hello world", 15);
-  ps3_menu_add_item (menu, NULL, "hello 2", 22);
-  ps3_menu_add_item (menu, NULL, "foo bar", 10);
-  ps3_menu_add_item (menu, NULL, "wazup", 13);
-  ps3_menu_add_item (menu, NULL, "Hello world 1", 15);
-  ps3_menu_add_item (menu, NULL, "Hello world 2", 15);
-  ps3_menu_add_item (menu, NULL, "Hello world 3", 15);
-  ps3_menu_add_item (menu, NULL, "Hello world 4", 15);
-  ps3_menu_add_item (menu, NULL, "Hello world 5", 15);
-  ps3_menu_add_item (menu, NULL, "Hello world 6", 15);
-  ps3_menu_add_item (menu, NULL, "Hello world 7", 15);
-  ps3_menu_add_item (menu, NULL, "Hello world 8", 15);
-  ps3_menu_add_item (menu, NULL, "Hello world 9", 15);
+  idx = ps3_menu_add_item (menu, NULL, "TOP LEFT", 10);
+  menu->items[idx].alignment = PS3_MENU_ALIGN_TOP_LEFT;
+  idx = ps3_menu_add_item (menu, NULL, "TOP CENTER", 10);
+  menu->items[idx].alignment = PS3_MENU_ALIGN_TOP_CENTER;
+  idx = ps3_menu_add_item (menu, NULL, "TOP RIGHT", 10);
+  menu->items[idx].alignment = PS3_MENU_ALIGN_TOP_RIGHT;
+  idx = ps3_menu_add_item (menu, NULL, "MIDDLE LEFT", 10);
+  menu->items[idx].alignment = PS3_MENU_ALIGN_MIDDLE_LEFT;
+  idx = ps3_menu_add_item (menu, NULL, "MIDDLE CENTER", 10);
+  menu->items[idx].alignment = PS3_MENU_ALIGN_MIDDLE_CENTER;
+  idx = ps3_menu_add_item (menu, NULL, "MIDDLE RIGHT", 10);
+  menu->items[idx].alignment = PS3_MENU_ALIGN_MIDDLE_RIGHT;
+  idx = ps3_menu_add_item (menu, NULL, "BOTTOM LEFT", 10);
+  menu->items[idx].alignment = PS3_MENU_ALIGN_BOTTOM_LEFT;
+  idx = ps3_menu_add_item (menu, NULL, "BOTTOM CENTER", 10);
+  menu->items[idx].alignment = PS3_MENU_ALIGN_BOTTOM_CENTER;
+  idx = ps3_menu_add_item (menu, NULL, "BOTTOM RIGHT", 10);
+  menu->items[idx].alignment = PS3_MENU_ALIGN_BOTTOM_RIGHT;
+  ps3_menu_add_item (menu, NULL, "Hello world 1", 20);
+  ps3_menu_add_item (menu, NULL, "Hello world 2", 20);
+  ps3_menu_add_item (menu, NULL, "Hello world 3", 20);
+  ps3_menu_add_item (menu, NULL, "Hello world 4", 20);
+  ps3_menu_add_item (menu, NULL, "Hello world 5", 20);
+  ps3_menu_add_item (menu, NULL, "Hello world 6", 20);
+  ps3_menu_add_item (menu, NULL, "Hello world 7", 20);
+  ps3_menu_add_item (menu, NULL, "Hello world 8", 20);
+  ps3_menu_add_item (menu, NULL, "Hello world 9", 20);
   ps3_menu_add_item (menu, NULL, "Hello world 10", 15);
-  ps3_menu_add_item (menu, NULL, "Hello world 11", 15);
-  ps3_menu_add_item (menu, NULL, "Hello world 12", 15);
-  ps3_menu_add_item (menu, NULL, "Hello world 13", 15);
-  ps3_menu_add_item (menu, NULL, "Hello world 14", 15);
-  ps3_menu_add_item (menu, NULL, "Hello world 15", 15);
+  ps3_menu_add_item (menu, NULL, "Hello world 11", 5);
+  ps3_menu_add_item (menu, NULL, "Hello world 12", 5);
+  ps3_menu_add_item (menu, NULL, "Hello world 13", 5);
+  ps3_menu_add_item (menu, NULL, "Hello world 14", 5);
+  ps3_menu_add_item (menu, NULL, "Hello world 5", 15);
   ps3_menu_add_item (menu, NULL, "Hello world 1", 10);
   ps3_menu_add_item (menu, NULL, "Hello world 2", 10);
   ps3_menu_add_item (menu, NULL, "Hello world 3", 10);
