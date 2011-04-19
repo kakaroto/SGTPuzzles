@@ -140,6 +140,9 @@ create_main_menu (frontend * fe) {
   fe->menu = ps3_menu_new (surface, -1, 1, 300, 40);
   for (i = 0; main_menu_items[i].title; i++) {
     ps3_menu_add_item (fe->menu, NULL, main_menu_items[i].title, 25);
+
+    if (main_menu_items[i].callback == _solve_game)
+      fe->menu->items[i].enabled = fe->thegame->can_solve;
   }
 }
 
