@@ -494,6 +494,7 @@ destroy_window (frontend *fe)
 
 typedef struct {
   int opened;
+  int closed;
   int exit;
 } XMBEvent;
 
@@ -503,12 +504,15 @@ event_handler (u64 status, u64 param, void * user_data)
   XMBEvent *xmb = user_data;
 
   printf ("Received event %lX\n", status);
-  if (status == SYSUTIL_EXIT_GAME)
+  if (status == SYSUTIL_EXIT_GAME) {
     xmb->exit = 1;
-  else if (status == SYSUTIL_MENU_OPEN)
+  } else if (status == SYSUTIL_MENU_OPEN) {
     xmb->opened = 1;
-  else if (status == SYSUTIL_MENU_CLOSE)
+    xmb->closed = 0;
+  } else if (status == SYSUTIL_MENU_CLOSE) {
     xmb->opened = 0;
+    xmb->closed = 1;
+  }
 }
 
 int
@@ -557,8 +561,21 @@ main (int argc, char *argv[])
      * It seems the XMB needs to get our buffers so it can overlay itself on top.
      * If we stop flipping buffers, the xmb will freeze.
      */
-    if (xmb.opened)
+    if (xmb.opened) {
+      rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
+
+      setRenderTarget(fe->context, buffer);
+      /* Wait for the last flip to finish, so we can draw to the old buffer */
+      waitFlip ();
+      /* Flip buffer onto screen */
+      flipBuffer (fe->context, fe->currentBuffer);
+      fe->currentBuffer++;
+      if (fe->currentBuffer >= MAX_BUFFERS)
+        fe->currentBuffer = 0;
+    }
+    if (xmb.closed) {
       ps3_refresh_draw (fe);
+    }
 
 #if SHOW_FPS || STATUS_BAR_SHOW_FPS
     /* Show FPS */

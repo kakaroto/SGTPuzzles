@@ -8,4 +8,3 @@
 - Call midend_can_solve and disable the 'Solve' menu item if the backend can't solve the game
 - Add the possibility to press and hold a button (d-pad) to make multiple moves
 - Add the possibility to press and hold a button (X - O) while moving the cursor to select multiple grids
-- Add support for quitting the game through the ingame XMB
