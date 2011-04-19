@@ -173,7 +173,8 @@ void HSVToRGB(float h, float s, float v, float *r, float *g, float *b)
 }
 
 cairo_surface_t *
-_create_button_bg (Ps3Menu *menu, float r, float g, float b)
+ps3_menu_create_default_background (int width, int height,
+    float r, float g, float b)
 {
   cairo_surface_t *surface;
   cairo_pattern_t *linpat = NULL;
@@ -181,10 +182,9 @@ _create_button_bg (Ps3Menu *menu, float r, float g, float b)
   float h, s, v;
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-      menu->default_item_width, menu->default_item_height);
+      width, height);
 
-  linpat = cairo_pattern_create_linear (menu->default_item_width, 0,
-        menu->default_item_width, menu->default_item_height);
+  linpat = cairo_pattern_create_linear (width, 0, width, height);
 
   /* Transform the RGB into HSV so we can make it lighter */
   RGBToHSV (r, g, b, &h, &s, &v);
@@ -204,12 +204,11 @@ _create_button_bg (Ps3Menu *menu, float r, float g, float b)
   cairo_new_path (cr);
   cairo_arc (cr, BUTTON_ARC_PAD_X, BUTTON_ARC_PAD_Y,
       BUTTON_ARC_RADIUS, M_PI, -M_PI / 2);
-  cairo_arc (cr, menu->default_item_width - BUTTON_ARC_PAD_X, BUTTON_ARC_PAD_Y,
+  cairo_arc (cr, width - BUTTON_ARC_PAD_X, BUTTON_ARC_PAD_Y,
       BUTTON_ARC_RADIUS, -M_PI / 2, 0);
-  cairo_arc (cr, menu->default_item_width - BUTTON_ARC_PAD_X,
-      menu->default_item_height - BUTTON_ARC_PAD_Y,
+  cairo_arc (cr, width - BUTTON_ARC_PAD_X,  height - BUTTON_ARC_PAD_Y,
       BUTTON_ARC_RADIUS, 0, M_PI / 2);
-  cairo_arc (cr, BUTTON_ARC_PAD_X, menu->default_item_height - BUTTON_ARC_PAD_Y,
+  cairo_arc (cr, BUTTON_ARC_PAD_X, height - BUTTON_ARC_PAD_Y,
       BUTTON_ARC_RADIUS, M_PI / 2, M_PI);
   cairo_close_path (cr);
   cairo_clip (cr);
@@ -219,9 +218,8 @@ _create_button_bg (Ps3Menu *menu, float r, float g, float b)
 
   cairo_set_source_rgba (cr, 1.0, 1.0, 1.0, 0.2);
   cairo_new_path (cr);
-  cairo_arc (cr, menu->default_item_width / 2,
-      -(menu->default_item_width * 4) + (menu->default_item_height / 2),
-      menu->default_item_width * 4, 0, M_PI * 2);
+  cairo_arc (cr, width / 2, -(width * 4) + (height / 2),
+      width * 4, 0, M_PI * 2);
   cairo_close_path (cr);
   cairo_fill (cr);
 
@@ -257,9 +255,10 @@ ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
   menu->pad_y = PS3_MENU_DEFAULT_PAD_Y;
   menu->start_item = 0;
 
-  menu->bg_image = _create_button_bg (menu, 0.0, 0.0, 0.0);
-  //menu->bg_sel_image = _create_button_bg (menu, 0.05, 0.30, 0.60);
-  menu->bg_sel_image = _create_button_bg (menu, 0.0, 0.40, 0.0);
+  menu->bg_image = ps3_menu_create_default_background (
+      menu->default_item_width, menu->default_item_height, 0.0, 0.0, 0.0);
+  menu->bg_sel_image = ps3_menu_create_default_background (
+      menu->default_item_width, menu->default_item_height, 0.05, 0.30, 0.60);
 
   return menu;
 }

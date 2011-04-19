@@ -364,3 +364,23 @@ cairo_surface_t *ps3_menu_get_surface (Ps3Menu *menu);
  * that it is not used afterwards.
  */
 void ps3_menu_free (Ps3Menu *menu);
+
+/**
+ * ps3_menu_create_default_background:
+ * @width: The width of the surface to create
+ * @height: The height of the surface to create
+ * @red: The red component of the top color in the gradient
+ * @green: The green component of the top color in the gradient
+ * @bllue: The blue component of the top color in the gradient
+ *
+ * This utility function is used to create the default background image to be
+ * used for the menu items. It is called internally by ps3_menu_new() but it
+ * can be used to generate a new background with a different color.
+ * It will create a gradient from the color specified as argument, going to
+ * lighter colors towards the bottom, and make the button round edged, as well as
+ * add a glossy effect to it.
+ *
+ * Returns: A cairo surface with the generated background
+ */
+cairo_surface_t *ps3_menu_create_default_background (int width, int height,
+    float red, float green, float blue);
