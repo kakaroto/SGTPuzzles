@@ -251,6 +251,7 @@ ps3_menu_create_default_background (int width, int height,
 
   cairo_destroy (cr);
   cairo_pattern_destroy (linpat);
+  cairo_surface_flush (surface);
 
   return surface;
 }
