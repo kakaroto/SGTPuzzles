@@ -10,6 +10,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 
 #include "ps3menu.h"
 
@@ -77,13 +78,72 @@ _draw_item (Ps3Menu *menu, Ps3MenuItem *item,
 	return 0;
 }
 
+#define BUTTON_ARC_PAD_X 10
+#define BUTTON_ARC_PAD_Y 10
+#define BUTTON_ARC_RADIUS 10
+
+cairo_surface_t *
+_create_button_bg (Ps3Menu *menu, int active)
+{
+  cairo_surface_t *surface;
+  cairo_pattern_t *linpat = NULL;
+  cairo_t *cr = NULL;
+
+  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+      menu->default_item_width, menu->default_item_height);
+
+  linpat = cairo_pattern_create_linear (menu->default_item_width, 0,
+        menu->default_item_width, menu->default_item_height);
+
+  if (active) {
+    cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.0, 0.0, 1.0);
+    cairo_pattern_add_color_stop_rgb (linpat, 0.3, 0.0, 0.2, 1.0);
+    cairo_pattern_add_color_stop_rgb (linpat, 0.7, 0.0, 0.5, 1.0);
+    cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.0, 0.7, 1.0);
+  } else {
+    cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.0, 0.0, 0.0);
+    cairo_pattern_add_color_stop_rgb (linpat, 0.7, 0.3, 0.3, 0.3);
+    cairo_pattern_add_color_stop_rgb (linpat, 0.3, 0.5, 0.5, 0.5);
+    cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.7, 0.7, 0.7);
+  }
+
+  cr = cairo_create (surface);
+
+  cairo_new_path (cr);
+  cairo_arc (cr, BUTTON_ARC_PAD_X, BUTTON_ARC_PAD_Y,
+      BUTTON_ARC_RADIUS, M_PI, -M_PI / 2);
+  cairo_arc (cr, menu->default_item_width - BUTTON_ARC_PAD_X, BUTTON_ARC_PAD_Y,
+      BUTTON_ARC_RADIUS, -M_PI / 2, 0);
+  cairo_arc (cr, menu->default_item_width - BUTTON_ARC_PAD_X,
+      menu->default_item_height - BUTTON_ARC_PAD_Y,
+      BUTTON_ARC_RADIUS, 0, M_PI / 2);
+  cairo_arc (cr, BUTTON_ARC_PAD_X, menu->default_item_height - BUTTON_ARC_PAD_Y,
+      BUTTON_ARC_RADIUS, M_PI / 2, M_PI);
+  cairo_close_path (cr);
+  cairo_clip (cr);
+
+  cairo_set_source (cr, linpat);
+  cairo_paint (cr);
+
+  cairo_set_source_rgba (cr, 1.0, 1.0, 1.0, 0.3);
+  cairo_new_path (cr);
+  cairo_arc (cr, menu->default_item_width / 2,
+      -(menu->default_item_width * 4) + (menu->default_item_height / 2),
+      menu->default_item_width * 4, 0, M_PI * 2);
+  cairo_close_path (cr);
+  cairo_fill (cr);
+
+  cairo_destroy (cr);
+  cairo_pattern_destroy (linpat);
+
+  return surface;
+}
+
 Ps3Menu *
 ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
     int default_item_width, int default_item_height)
 {
   Ps3Menu *menu = NULL;
-  cairo_pattern_t *linpat = NULL;
-  cairo_t *grad_cr = NULL;
 
   /* Infinite scrolling horizontally and vertically is not practical,
    * return error  */
@@ -105,38 +165,10 @@ ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
   menu->pad_y = PS3_MENU_DEFAULT_PAD_Y;
   menu->start_item = 0;
 
-  menu->bg_image = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-      default_item_width, default_item_height);
 
-  linpat = cairo_pattern_create_linear (default_item_width, 0,
-        default_item_width, default_item_height);
+  menu->bg_image = _create_button_bg (menu, 0);
 
-  cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.0, 0.0, 0.0);
-  cairo_pattern_add_color_stop_rgb (linpat, 0.3, 0.4, 0.4, 0.4);
-  cairo_pattern_add_color_stop_rgb (linpat, 0.7, 0.3, 0.3, 0.3);
-  cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.0, 0.0, 0.0);
-
-  grad_cr = cairo_create (menu->bg_image);
-  cairo_set_source (grad_cr, linpat);
-  cairo_paint (grad_cr);
-  cairo_destroy (grad_cr);
-  cairo_pattern_destroy (linpat);
-
-  menu->bg_sel_image = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-        default_item_width, default_item_height);
-
-  linpat = cairo_pattern_create_linear (default_item_width, 0,
-      default_item_width, default_item_height);
-  cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.0, 0.8, 0.3);
-  cairo_pattern_add_color_stop_rgb (linpat, 0.3, 0.0, 0.6, 0.3);
-  cairo_pattern_add_color_stop_rgb (linpat, 0.7, 0.0, 0.7, 0.3);
-  cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.0, 0.8, 0.3);
-
-  grad_cr = cairo_create (menu->bg_sel_image);
-  cairo_set_source (grad_cr, linpat);
-  cairo_paint (grad_cr);
-  cairo_destroy (grad_cr);
-  cairo_pattern_destroy (linpat);
+  menu->bg_sel_image = _create_button_bg (menu, 1);
 
   return menu;
 }

@@ -136,14 +136,14 @@ typedef struct {
  *
  * Default horizontal internal padding of a menu's item
  */
-#define PS3_MENU_DEFAULT_IPAD_X 5
+#define PS3_MENU_DEFAULT_IPAD_X 10
 
 /**
  * PS3_MENU_DEFAULT_IPAD_Y:
  *
  * Default vertical internal padding of a menu's item
  */
-#define PS3_MENU_DEFAULT_IPAD_Y 2
+#define PS3_MENU_DEFAULT_IPAD_Y 5
 
 /**
  * PS3_MENU_DEFAULT_PAD_X:
