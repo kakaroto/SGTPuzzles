@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
       620, 400);
-  menu = ps3_menu_new (surface, -1, 3, (620 - 12) / 3, 50);
+  menu = ps3_menu_new (surface, -1, 3, (620 / 3) - 10, 50);
 
   idx = ps3_menu_add_item (menu, "TOP LEFT", 10);
   menu->items[idx].alignment = PS3_MENU_ALIGN_TOP_LEFT;
