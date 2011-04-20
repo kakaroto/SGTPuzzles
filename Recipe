@@ -228,7 +228,7 @@ endif
 include $(PSL1GHT)/ppu_rules
 
 TITLE           :=      SGT Puzzles
-APPID           :=      SGTPUZZ
+APPID           :=      SGTPZL010
 CONTENTID       :=      UP0001-$(APPID)_00-0000000000000000
 SFOXML          :=      $(CURDIR)/ps3/sfo.xml
 ICON0           :=      $(CURDIR)/ps3/ICON0.PNG
@@ -240,14 +240,14 @@ ICON0           :=      $(CURDIR)/ps3/ICON0.PNG
 # INCLUDES is a list of directories containing extra header files
 #---------------------------------------------------------------------------------
 TARGET          :=      Puzzles
-DATA            :=      $(CURDIR)/data
+PKGFILES        :=      $(CURDIR)/ps3/data
 INCLUDES        :=      $(CURDIR)/ps3/ $(CURDIR)
 #---------------------------------------------------------------------------------
 
 #-----------------------------------------------------------
 # any extra libraries we wish to link with the project
 #-----------------------------------------------------------
-LIBS    :=      -lgcm_sys -lrsx -lsysutil -lio -lcairo -lm -lfreetype -lz -lpixman-1 -lrt -llv2
+LIBS    :=      -lgcm_sys -lrsx -lsysutil -lio -lcairo -lpng -lm -lfreetype -lz -lpixman-1 -lrt -llv2
 #-----------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
@@ -290,7 +290,7 @@ clean:
 	cp $(ICON0) pkg/
 	$(SELF_NPDRM) $(basename $<).elf pkg/USRDIR/EBOOT.BIN $(CONTENTID) >> /dev/null
 	$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
-	if test -n "$(PKGFILES)" -a -d "$(PKGFILES)"; then cp -rf $(PKGFILES)/* pkg/; fi
+	if test -n "$(PKGFILES)" -a -d "$(PKGFILES)"; then cp -rf $(PKGFILES)/ pkg/USRDIR/; fi
 	$(PKG) --contentid $(CONTENTID) pkg/ $@ >> /dev/null
 	cp $@ $(basename $@).geohot.pkg
 	$(PACKAGE_FINALIZE) $(basename $@).geohot.pkg

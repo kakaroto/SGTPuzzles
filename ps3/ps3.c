@@ -33,6 +33,8 @@
 #define STATUS_BAR_SHOW_FPS FALSE
 // #define TEST_GRID
 
+static char cwd[1024];
+
 static void calculate_puzzle_size (frontend *fe);
 
 void
@@ -150,14 +152,27 @@ void
 create_puzzle_menu (frontend * fe) {
   cairo_surface_t *surface;
   int i ;
+
   fe->mode = MODE_PUZZLE_MENU;
   surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      612, fe->height * 0.9);
+      680, fe->height * 0.9);
 
   /* Infinite vertical scrollable menu */
-  fe->menu = ps3_menu_new (surface, -1, 2, 300, 40);
+  fe->menu = ps3_menu_new (surface, -1, 4, 130, 150);
+  fe->menu->pad_x = 20;
+  cairo_surface_destroy (surface);
+
   for (i = 0; i < gamecount; i++) {
-    ps3_menu_add_item (fe->menu, gamelist[i]->name, 25);
+    char filename[256];
+
+    ps3_menu_add_item (fe->menu, gamelist[i]->name, 20);
+    snprintf (filename, 255, "%s/data/puzzles/%s.png", cwd, gamelist_names[i]);
+    surface = cairo_image_surface_create_from_png (filename);
+    if (surface) {
+      fe->menu->items[i].alignment = PS3_MENU_ALIGN_BOTTOM_CENTER;
+      ps3_menu_set_item_image (fe->menu, i, surface, PS3_MENU_IMAGE_POSITION_TOP);
+      cairo_surface_destroy (surface);
+    }
   }
 }
 
@@ -518,6 +533,18 @@ event_handler (u64 status, u64 param, void * user_data)
   }
 }
 
+static void
+get_cwd(const char *path)
+{
+  const char *ptr = path;
+
+  while((ptr = strstr (ptr, "/")) != NULL) {
+    strncpy (cwd, path, ptr - path);
+    ptr++;
+  }
+  printf ("cwd is : %s\n", cwd);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -529,6 +556,8 @@ main (int argc, char *argv[])
   int i;
   frontend *fe;
   double elapsed;
+
+  get_cwd(argv[0]);
 
   fe = new_window ();
   ioPadInit (7);
