@@ -159,6 +159,13 @@ typedef struct {
  */
 #define PS3_MENU_DEFAULT_PAD_Y 2
 
+/**
+ * PS3_MENU_DEFAULT_TEXT_COLOR:
+ *
+ * The default color to use for drawing text
+ */
+#define PS3_MENU_DEFAULT_TEXT_COLOR (Ps3MenuColor) {1.0, 1.0, 1.0, 1.0}
+
 typedef struct _Ps3MenuItem Ps3MenuItem;
 typedef struct _Ps3Menu Ps3Menu;
 
@@ -183,8 +190,7 @@ typedef int (*Ps3MenuDrawItemCb) (Ps3Menu *menu, Ps3MenuItem *item,
 
 /**
  * Ps3MenuItem:
- * @index: The index of this item in the #Ps3Menu. DO NOT modify this value.
- * @image: An image to draw in the menu, or #NULL
+ * @image: An image to draw in the menu
  * @image_position: Where to place the image on the menu
  * @text: The text to show
  * @text_size: The font size of the text to show
@@ -199,12 +205,12 @@ typedef int (*Ps3MenuDrawItemCb) (Ps3Menu *menu, Ps3MenuItem *item,
  * @enabled: Wether or not the item is enabled or not (greyed)
  * @bg_image: Background image for non-selected item
  * @bg_sel_image: Background image for selected item
+ * @index: The index of this item in the #Ps3Menu. DO NOT modify this value.
  *
  * A structure representing a menu item, each attribute can be configured by
  * modifying the structure.
  */
 struct _Ps3MenuItem {
-  int index;
   cairo_surface_t *image;
   Ps3MenuImagePosition image_position;
   char *text;
@@ -220,6 +226,8 @@ struct _Ps3MenuItem {
   int enabled;
   cairo_surface_t *bg_image;
   cairo_surface_t *bg_sel_image;
+  /* Private - you can read, but don't modify */
+  int index;
 };
 
 /**
@@ -229,14 +237,14 @@ struct _Ps3MenuItem {
  * @columns: Total columns in the menu
  * @default_item_width: The default width of each menu item
  * @default_item_height: The default height of each menu item
- * @nitems: Number of items in the menu
- * @items: The items in the menu
- * @selection: Currently selected item index
  * @pad_x: The horizontal padding between items
  * @pad_y: The vertical padding between items
  * @bg_image: The default background image for non selected items
  * @bg_sel_image: The default background image for selected items
  * @disabled_image: An image to overlay on top of disabled items
+ * @nitems: Number of items in the menu
+ * @items: The items in the menu
+ * @selection: Currently selected item index
  * @start_item: The first item to be drawn (!= 0 if scrolled)
  */
 struct _Ps3Menu {
@@ -245,15 +253,15 @@ struct _Ps3Menu {
   int columns;
   int default_item_width;
   int default_item_height;
-  int nitems;
-  Ps3MenuItem *items;
-  int selection;
   int pad_x;
   int pad_y;
   cairo_surface_t *bg_image;
   cairo_surface_t *bg_sel_image;
   cairo_surface_t *disabled_image;
-  /* Private */
+  /* Private - can read but don't modify */
+  int nitems;
+  Ps3MenuItem *items;
+  int selection;
   int start_item;
 };
 
@@ -289,6 +297,34 @@ Ps3Menu *ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
     int default_item_width, int default_item_height);
 
 /**
+ * ps3_menu_new_full:
+ * @surface: The surface associated with the menu, where it will get drawn. This
+ * surface will be referenced so if you do not want to hold a reference to it,
+ * then call cairo_surface_destroy() on it
+ * @rows: The number of rows to show in the menu, or -1 for infinite
+ * @columns: The number of columns to show in the menu, or -1 for infinite
+ * @default_item_width: The default width of each menu item
+ * @default_item_height: The default height of each menu item
+ * @pad_x: The horizontal padding between items
+ * @pad_y: The vertical padding between items
+ * @bg_image: The default background image for non selected items
+ * @bg_sel_image: The default background image for selected items
+ * @disabled_overlay: An image to overlay on top of disabled items
+ *
+ * Create a new #Ps3Menu with all settings specified. This is a more complete
+ * version of ps3_menu_new() that allows you to specify each parameter for
+ * an increased sense of customization.
+ * If @bg_image, @bg_sel_image, or @disabled_overlay are #NULL, then the default
+ * will be used.
+ *
+ * Returns: the newly created #Ps3Menu or #NULL in case of an error.
+ */
+Ps3Menu *ps3_menu_new_full (cairo_surface_t *surface, int rows, int columns,
+    int default_item_width, int default_item_height, int pad_x, int pad_y,
+    cairo_surface_t *bg_image, cairo_surface_t *bg_sel_image,
+    cairo_surface_t *disabled_overlay);
+
+/**
  * ps3_menu_add_item:
  * @menu: The #Ps3Menu to add the item to
  * @text: The middle-left aligned text to show in the item
@@ -303,8 +339,49 @@ Ps3Menu *ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
  *
  * Returns: A unique identifier (the item's index) representing this item or
  * -1 in case of an error (no room left).
+ * The created item can then be accessed using menu->items[index].
  */
 int ps3_menu_add_item (Ps3Menu *menu, const char *text, int text_size);
+
+/**
+ * ps3_menu_add_item_full:
+ * @menu: The #Ps3Menu to add the item to
+ * @image: An image to draw in the menu, or #NULL
+ * @image_position: Where to place the image on the menu
+ * @text: The text to show in the item
+ * @text_size: The font size of the text to show, or -1 for automatic
+ * @text_color: The color to use for the menu item's text
+ * @alignment: The alignment of the text
+ * @width: Item width
+ * @height: Item height
+ * @ipad_x: Internal horizontal padding
+ * @ipad_y: Internal vertical padding
+ * @enabled: Wether or not the item is enabled or not (greyed)
+ * @bg_image: Background image for non-selected item, or #NULL
+ * @bg_sel_image: Background image for selected item, or #NULL
+ * @draw_cb: The drawing callback when the item needs to be drawn, or #NULL
+ * @draw_data: User data for the drawing callback
+ *
+ * Append a new item to the @menu.
+ * This is a more complete version of ps3_menu_add_item() where you can
+ * specify all the options that you would normally modify directly in the
+ * #Ps3MenuItem. The same rules apply as with ps3_menu_add_item().
+ * The @draw_cb is the callback used for drawing the item, it is usually set
+ * to an internal function that does the drawing, but it can be overridden if
+ * you want to draw the item yourself using some magical algorithm. You can set
+ * the @bg_image, @bg_sel_image and @draw_cb to #NULL if you want the defaults to
+ * be used, as if calling ps3_menu_add_item().
+ *
+ * Returns: A unique identifier (the item's index) representing this item or
+ * -1 in case of an error (no room left).
+ * The created item can then be accessed using menu->items[index].
+ */
+int ps3_menu_add_item_full (Ps3Menu *menu, cairo_surface_t *image,
+    Ps3MenuImagePosition image_position, const char *text, int text_size,
+    Ps3MenuColor text_color, Ps3MenuTextAlignment alignment,
+    int width, int height, int ipad_x, int ipad_y, int enabled,
+    cairo_surface_t *bg_image, cairo_surface_t *bg_sel_image,
+    Ps3MenuDrawItemCb draw_cb, void *draw_data);
 
 /**
  * ps3_menu_set_item_image:

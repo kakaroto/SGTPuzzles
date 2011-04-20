@@ -316,14 +316,19 @@ _create_disabled_overlay (Ps3Menu *menu, int width, int height)
 }
 
 Ps3Menu *
-ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
-    int default_item_width, int default_item_height)
+ps3_menu_new_full (cairo_surface_t *surface, int rows, int columns,
+    int default_item_width, int default_item_height, int pad_x, int pad_y,
+    cairo_surface_t *bg_image, cairo_surface_t *bg_sel_image,
+    cairo_surface_t *disabled_overlay)
 {
   Ps3Menu *menu = NULL;
 
   /* Infinite scrolling horizontally and vertically is not practical,
    * return error  */
   if (rows == -1 && columns == -1)
+    return NULL;
+
+  if (surface == NULL)
     return NULL;
 
   menu = malloc (sizeof(Ps3Menu));
@@ -334,27 +339,56 @@ ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
   menu->columns = columns;
   menu->default_item_width = default_item_width;
   menu->default_item_height = default_item_height;
+  menu->pad_x = pad_x;
+  menu->pad_y = pad_y;
   menu->nitems = 0;
   menu->items = NULL;
   menu->selection = 0; /* Select the first item by default */
-  menu->pad_x = PS3_MENU_DEFAULT_PAD_X;
-  menu->pad_y = PS3_MENU_DEFAULT_PAD_Y;
   menu->start_item = 0;
 
-  menu->bg_image = ps3_menu_create_default_background (
-      menu->default_item_width, menu->default_item_height, 0.0, 0.0, 0.0);
-  menu->bg_sel_image = ps3_menu_create_default_background (
-      menu->default_item_width, menu->default_item_height, 0.05, 0.30, 0.60);
-  menu->disabled_image = _create_disabled_overlay (menu,
-      menu->default_item_width, menu->default_item_height);
+  if (bg_image)
+    menu->bg_image = cairo_surface_reference (bg_image);
+  else
+    menu->bg_image = ps3_menu_create_default_background (
+        menu->default_item_width, menu->default_item_height, 0.0, 0.0, 0.0);
+
+  if (bg_image)
+    menu->bg_sel_image = cairo_surface_reference (bg_sel_image);
+  else
+    menu->bg_sel_image = ps3_menu_create_default_background (
+        menu->default_item_width, menu->default_item_height, 0.05, 0.30, 0.60);
+
+  if (disabled_overlay)
+    menu->disabled_image = cairo_surface_reference (disabled_overlay);
+  else
+    menu->disabled_image = _create_disabled_overlay (menu,
+        menu->default_item_width, menu->default_item_height);
 
   return menu;
 }
 
+Ps3Menu *
+ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
+    int default_item_width, int default_item_height)
+{
+  return ps3_menu_new_full (surface, rows, columns,
+      default_item_width, default_item_height,
+      PS3_MENU_DEFAULT_PAD_X, PS3_MENU_DEFAULT_PAD_Y,
+      NULL, NULL, NULL);
+}
+
 int
-ps3_menu_add_item (Ps3Menu *menu, const char *text, int text_size)
+ps3_menu_add_item_full (Ps3Menu *menu, cairo_surface_t *image,
+    Ps3MenuImagePosition image_position, const char *text, int text_size,
+    Ps3MenuColor text_color, Ps3MenuTextAlignment alignment,
+    int width, int height, int ipad_x, int ipad_y, int enabled,
+    cairo_surface_t *bg_image, cairo_surface_t *bg_sel_image,
+    Ps3MenuDrawItemCb draw_cb, void *draw_data)
 {
   Ps3MenuItem *item = NULL;
+
+  if (menu == NULL)
+    return -1;
 
   /* If the menu has a fixed and has no room left, return an error */
   if (menu->rows != -1 && menu->columns != -1 &&
@@ -369,22 +403,45 @@ ps3_menu_add_item (Ps3Menu *menu, const char *text, int text_size)
 
   item->index = menu->nitems - 1;
   item->image = NULL;
-  item->image_position = PS3_MENU_IMAGE_POSITION_LEFT;
+  item->image_position = image_position;
   item->text = strdup (text);
   item->text_size = text_size;
-  item->text_color = (Ps3MenuColor) {1.0, 1.0, 1.0, 1.0};
-  item->alignment = PS3_MENU_ALIGN_MIDDLE_CENTER;
-  item->draw_cb = _draw_item;
-  item->draw_data = NULL;
-  item->width = menu->default_item_width;
-  item->height = menu->default_item_height;
-  item->ipad_x = PS3_MENU_DEFAULT_IPAD_X;
-  item->ipad_y = PS3_MENU_DEFAULT_IPAD_Y;
-  item->enabled = TRUE;
-  item->bg_image = cairo_surface_reference (menu->bg_image);
-  item->bg_sel_image = cairo_surface_reference (menu->bg_sel_image);
+  item->text_color = text_color;
+  item->alignment = alignment;
+  if (draw_cb != NULL)
+    item->draw_cb = draw_cb;
+  else
+    item->draw_cb = _draw_item;
+
+  item->draw_data = draw_data;
+  item->width = width;
+  item->height = height;
+  item->ipad_x = ipad_x;
+  item->ipad_y = ipad_y;
+  item->enabled = enabled;
+
+  if (bg_image == NULL)
+    bg_image = menu->bg_image;
+  if (bg_sel_image == NULL)
+    bg_sel_image = menu->bg_sel_image;
+
+  item->bg_image = cairo_surface_reference (bg_image);
+  item->bg_sel_image = cairo_surface_reference (bg_sel_image);
+
+  if (image != NULL)
+    ps3_menu_set_item_image (menu, item->index, image, image_position);
 
   return item->index;
+}
+
+int
+ps3_menu_add_item (Ps3Menu *menu, const char *text, int text_size)
+{
+  return ps3_menu_add_item_full (menu, NULL, PS3_MENU_IMAGE_POSITION_LEFT, text,
+      text_size, PS3_MENU_DEFAULT_TEXT_COLOR, PS3_MENU_ALIGN_MIDDLE_CENTER,
+      menu->default_item_width, menu->default_item_height,
+      PS3_MENU_DEFAULT_IPAD_X, PS3_MENU_DEFAULT_IPAD_Y, TRUE,
+      NULL, NULL, NULL, NULL);
 }
 
 void
