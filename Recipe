@@ -53,9 +53,13 @@ ALL      = list
 
 #define DECL(x) extern const game x;
 #define REF(x) &x,
+#define STR_LIST(x) STR(x),
+
 GAMELIST(DECL)
+
 const game *gamelist[] = { GAMELIST(REF) };
 const int gamecount = lenof(gamelist);
+const char *gamelist_names[] = { GAMELIST(STR_LIST) };
 !end
 
 # Unix standalone application for special-purpose obfuscation.

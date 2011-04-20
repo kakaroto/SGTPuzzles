@@ -538,6 +538,7 @@ struct drawing_api {
 #ifdef COMBINED
 extern const game *gamelist[];
 extern const int gamecount;
+extern const char *gamelist_names[];
 #else
 extern const game thegame;
 #endif
