@@ -79,6 +79,26 @@ typedef enum {
 } Ps3MenuInput;
 
 /**
+ * Ps3MenuImagePosition:
+ * @PS3_MENU_IMAGE_POSITION_LEFT: Position the image on the left of the button
+ * @PS3_MENU_IMAGE_POSITION_RIGHT: Position the image on the right of the
+ * button
+ * @PS3_MENU_IMAGE_POSITION_TOP: Position the image on the top of the button
+ * @PS3_MENU_IMAGE_POSITION_BOTTOM: Position the image on the bottom of the
+ * button
+ *
+ * Defines the position of an image on a menu item. The image will be scaled
+ * so that it's height fits the menu item's height (for left/right positions)
+ * or so that it's width fits the menu item's width (for top/bottom positions)
+ */
+typedef enum {
+  PS3_MENU_IMAGE_POSITION_LEFT,
+  PS3_MENU_IMAGE_POSITION_RIGHT,
+  PS3_MENU_IMAGE_POSITION_TOP,
+  PS3_MENU_IMAGE_POSITION_BOTTOM,
+} Ps3MenuImagePosition;
+
+/**
  * Ps3MenuColor:
  * @red: The red value
  * @green: The green value
@@ -165,6 +185,7 @@ typedef int (*Ps3MenuDrawItemCb) (Ps3Menu *menu, Ps3MenuItem *item,
  * Ps3MenuItem:
  * @index: The index of this item in the #Ps3Menu. DO NOT modify this value.
  * @image: An image to draw in the menu, or #NULL
+ * @image_position: Where to place the image on the menu
  * @text: The text to show
  * @text_size: The font size of the text to show
  * @text_color: The color to use for the menu item's text
@@ -185,6 +206,7 @@ typedef int (*Ps3MenuDrawItemCb) (Ps3Menu *menu, Ps3MenuItem *item,
 struct _Ps3MenuItem {
   int index;
   cairo_surface_t *image;
+  Ps3MenuImagePosition image_position;
   char *text;
   int text_size;
   Ps3MenuColor text_color;
@@ -269,7 +291,6 @@ Ps3Menu *ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
 /**
  * ps3_menu_add_item:
  * @menu: The #Ps3Menu to add the item to
- * @image: An image to overlay to the item or #NULL.
  * @text: The middle-left aligned text to show in the item
  * @text_size: the size of the font for showing the text, or -1 for automatic
  *
@@ -279,19 +300,30 @@ Ps3Menu *ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
  * then subsequent rows are filled.
  * If the number of columns is infinite, the items are populated from top to
  * bottom on each column, then subsequent columns are filled.
- * <para>
- * The @image, if not #NULL will be overlayed on top of the menu item before
- * text is drawn. It will be positioned at (ipad_x, ipad_y), so it is the
- * responsability of the caller to scale the image or to draw it at a
- * different offset on the surface
- * surface
- * </para>
  *
  * Returns: A unique identifier (the item's index) representing this item or
  * -1 in case of an error (no room left).
  */
-int ps3_menu_add_item (Ps3Menu *menu, cairo_surface_t *image,
-    const char *text, int text_size);
+int ps3_menu_add_item (Ps3Menu *menu, const char *text, int text_size);
+
+/**
+ * ps3_menu_set_item_image:
+ * @menu: The menu containing the item
+ * @item_index: The item index in the menu to which to set the image
+ * @image: An image to overlay to the item or #NULL.
+ * @image_position: The position of the @image in the item.
+ *
+ * Sets @image to be overlayed on the item, positioned at @image_position.
+ * This function will use @image and will scale it to fit the current item's
+ * width or height (depending on the position), taking into account the
+ * internal padding of the item.
+ * It is preferable to use this function since it will scale the image,
+ * If you set the image surface directly into @item, then it will simply
+ * be overlayed on top of the item without any kind of scaling.
+ * After this function returns, @image will not be used, and can be destroyed.
+ */
+void ps3_menu_set_item_image (Ps3Menu *menu, int item_index, cairo_surface_t *image,
+    Ps3MenuImagePosition image_position);
 
 /**
  * ps3_menu_handle_input:

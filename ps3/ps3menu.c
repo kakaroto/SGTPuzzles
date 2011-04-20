@@ -89,8 +89,20 @@ _draw_item (Ps3Menu *menu, Ps3MenuItem *item,
   cairo_rectangle (cr, x + item->ipad_x, y + item->ipad_y, width, height);
   cairo_clip (cr);
   if (item->image) {
-    cairo_set_source_surface (cr, item->image,
-        x + item->ipad_x, y + item->ipad_y);
+    if (item->image_position == PS3_MENU_IMAGE_POSITION_BOTTOM)
+      cairo_set_source_surface (cr, item->image,
+          x + item->ipad_x, y + item->height - item->ipad_y -
+          cairo_image_surface_get_height (item->image));
+    else if (item->image_position == PS3_MENU_IMAGE_POSITION_TOP)
+      cairo_set_source_surface (cr, item->image,
+          x + item->ipad_x, y + item->ipad_y);
+    else if (item->image_position == PS3_MENU_IMAGE_POSITION_RIGHT)
+      cairo_set_source_surface (cr, item->image,
+          x + item->width - item->ipad_x -
+          cairo_image_surface_get_width (item->image), y + item->ipad_y);
+    else
+      cairo_set_source_surface (cr, item->image,
+          x + item->ipad_x, y + item->ipad_y);
     cairo_paint (cr);
   }
   _draw_text (menu, item, cr, x + item->ipad_x, y + item->ipad_y,
@@ -105,6 +117,31 @@ _draw_item (Ps3Menu *menu, Ps3MenuItem *item,
 
 
   return 0;
+}
+
+cairo_surface_t *
+_load_image (cairo_surface_t *image, int size)
+{
+  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+      size, size);
+  cairo_t *cr = cairo_create (surface);
+  int width, height;
+
+  width = cairo_image_surface_get_width (image);
+  height = cairo_image_surface_get_height (image);
+
+
+  cairo_scale (cr, (float) size / width, (float) size / width);
+  cairo_set_source_surface (cr, image, 0, 0);
+
+  /* Avoid getting the edge blended with 0 alpha */
+  cairo_pattern_set_extend (cairo_get_source(cr), CAIRO_EXTEND_PAD);
+
+  /* Replace the destination with the source instead of overlaying */
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+  cairo_paint (cr);
+
+  return surface;
 }
 
 #define BUTTON_ARC_PAD_X 10
@@ -315,8 +352,7 @@ ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
 }
 
 int
-ps3_menu_add_item (Ps3Menu *menu, cairo_surface_t *image,
-    const char *text, int text_size)
+ps3_menu_add_item (Ps3Menu *menu, const char *text, int text_size)
 {
   Ps3MenuItem *item = NULL;
 
@@ -332,7 +368,8 @@ ps3_menu_add_item (Ps3Menu *menu, cairo_surface_t *image,
   memset (item, 0, sizeof(Ps3MenuItem));
 
   item->index = menu->nitems - 1;
-  item->image = cairo_surface_reference (image);
+  item->image = NULL;
+  item->image_position = PS3_MENU_IMAGE_POSITION_LEFT;
   item->text = strdup (text);
   item->text_size = text_size;
   item->text_color = (Ps3MenuColor) {1.0, 1.0, 1.0, 1.0};
@@ -349,6 +386,28 @@ ps3_menu_add_item (Ps3Menu *menu, cairo_surface_t *image,
 
   return item->index;
 }
+
+void
+ps3_menu_set_item_image (Ps3Menu *menu, int item_index, cairo_surface_t *image,
+    Ps3MenuImagePosition image_position)
+{
+  Ps3MenuItem *item = &menu->items[item_index];
+
+  if (item->image)
+    cairo_surface_destroy (item->image);
+
+  item->image = NULL;
+  item->image_position = image_position;
+
+  if (image) {
+    if (image_position == PS3_MENU_IMAGE_POSITION_BOTTOM ||
+        image_position == PS3_MENU_IMAGE_POSITION_TOP)
+      item->image = _load_image (image, item->width - (2 * item->ipad_x));
+    else
+      item->image = _load_image (image, item->height - (2 * item->ipad_y));
+  }
+}
+
 
 static int
 _handle_input_internal (Ps3Menu *menu, Ps3MenuInput input,
