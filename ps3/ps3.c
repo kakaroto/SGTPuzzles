@@ -83,7 +83,7 @@ create_types_menu (frontend * fe){
       char* name;
       game_params *params;
       midend_fetch_preset(fe->me, i, &name, &params);
-      ps3_menu_add_item (fe->menu, NULL, name, 25);
+      ps3_menu_add_item (fe->menu, name, 25);
     }
   }
 }
@@ -139,7 +139,7 @@ create_main_menu (frontend * fe) {
   /* Infinite vertical scrollable menu */
   fe->menu = ps3_menu_new (surface, -1, 1, 300, 40);
   for (i = 0; main_menu_items[i].title; i++) {
-    ps3_menu_add_item (fe->menu, NULL, main_menu_items[i].title, 25);
+    ps3_menu_add_item (fe->menu, main_menu_items[i].title, 25);
 
     if (main_menu_items[i].callback == _solve_game)
       fe->menu->items[i].enabled = fe->thegame->can_solve;
@@ -157,7 +157,7 @@ create_puzzle_menu (frontend * fe) {
   /* Infinite vertical scrollable menu */
   fe->menu = ps3_menu_new (surface, -1, 2, 300, 40);
   for (i = 0; i < gamecount; i++) {
-    ps3_menu_add_item (fe->menu, NULL, gamelist[i]->name, 25);
+    ps3_menu_add_item (fe->menu, gamelist[i]->name, 25);
   }
 }
 

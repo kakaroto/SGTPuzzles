@@ -281,7 +281,7 @@ ps3_menu_create_default_background (int width, int height,
 
   cairo_set_source_rgba (cr, 1.0, 1.0, 1.0, 0.2);
   cairo_new_path (cr);
-  cairo_arc (cr, width / 2, -(width * 4) + (height / 2),
+  cairo_arc (cr, width / 2, - (width * 4) + (height / 2),
       width * 4, 0, M_PI * 2);
   cairo_close_path (cr);
   cairo_fill (cr);
