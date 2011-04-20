@@ -9,7 +9,7 @@
  *
  * Compile with :
  *
- * gcc -f -O0 -o test-menu-gtk test-menu-gtk.c ps3menu.c \
+ * gcc -g -O0 -o test-menu-gtk test-menu-gtk.c ps3menu.c \
  *     `pkg-config --cflags --libs cairo`                \
  *     `pkg-config --cflags --libs gtk+-2.0`
 */

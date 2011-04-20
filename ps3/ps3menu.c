@@ -482,6 +482,11 @@ _handle_input_internal (Ps3Menu *menu, Ps3MenuInput input,
   max_visible_rows = height / (menu->default_item_height + (2 * menu->pad_y));
   max_visible_columns = width / (menu->default_item_width + (2 * menu->pad_x));
 
+  if (max_visible_rows == 0)
+    max_visible_rows = 1;
+  if (max_visible_columns == 0)
+    max_visible_columns = 1;
+
   /* Define which row/column the selection is in */
   if (menu->columns != -1) {
     row = menu->selection / menu->columns;
@@ -592,10 +597,8 @@ _handle_input_internal (Ps3Menu *menu, Ps3MenuInput input,
     bbox->y = 0;
     bbox->width = cairo_image_surface_get_width (menu->surface);
     bbox->height = cairo_image_surface_get_height (menu->surface);
-  } else if ((max_visible_rows > 0 &&
-          (new_row - start_row) >= max_visible_rows) ||
-      (max_visible_columns > 0 &&
-          (new_column - start_column) >= max_visible_columns)) {
+  } else if (((new_row - start_row) >= max_visible_rows) ||
+      ((new_column - start_column) >= max_visible_columns)) {
     /* We go right/down to a hidden item */
     if (menu->columns != -1) {
       /* If we go on the right, we only need to shift by one column.
