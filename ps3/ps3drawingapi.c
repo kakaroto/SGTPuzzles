@@ -67,6 +67,8 @@ ps3_draw_text (void *handle, int x, int y, int fonttype, int fontsize,
   else if (align & ALIGN_HRIGHT)
     x -= tex.width;
 
+  x -= tex.x_bearing;
+
   cairo_move_to(fe->cr, x, y);
   cairo_show_text (fe->cr, text);
   cairo_restore(fe->cr);

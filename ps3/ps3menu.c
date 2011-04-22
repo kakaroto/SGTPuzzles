@@ -41,7 +41,6 @@ _draw_text (Ps3Menu *menu, Ps3MenuItem *item, cairo_t *cr,
   cairo_font_extents (cr, &fex);
   cairo_text_extents (cr, item->text, &tex);
 
-
   if (item->alignment & PS3_MENU_ALIGN_TOP)
     y += fex.ascent;
   else if (item->alignment & PS3_MENU_ALIGN_MIDDLE)
@@ -54,6 +53,7 @@ _draw_text (Ps3Menu *menu, Ps3MenuItem *item, cairo_t *cr,
   else if (item->alignment & PS3_MENU_ALIGN_RIGHT)
     x += width - tex.width;
 
+  x -= tex.x_bearing;
 
   cairo_set_source_rgba (cr, item->text_color.red, item->text_color.green,
       item->text_color.blue, item->text_color.alpha);
