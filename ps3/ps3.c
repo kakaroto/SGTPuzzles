@@ -222,11 +222,62 @@ activate_timer (frontend * fe)
 }
 
 int
+handle_pointer (frontend *fe, padData *paddata)
+{
+  int analog_h, analog_v;
+
+  /* Handle pointer movement (left analog stick) */
+  analog_h = paddata->ANA_L_H - 0x80;
+  analog_v = paddata->ANA_L_V - 0x80;
+
+  if (analog_h > PAD_STICK_DEADZONE)
+    analog_h -= PAD_STICK_DEADZONE;
+  else if (analog_h < -PAD_STICK_DEADZONE)
+    analog_h += PAD_STICK_DEADZONE;
+  else
+    analog_h = 0;
+
+  if (analog_v > PAD_STICK_DEADZONE)
+    analog_v -= PAD_STICK_DEADZONE;
+  else if (analog_v < -PAD_STICK_DEADZONE)
+    analog_v += PAD_STICK_DEADZONE;
+  else
+    analog_v = 0;
+
+  if(analog_h != 0 || analog_v != 0) {
+    fe->pointer_x += analog_h / 10;
+    fe->pointer_y += analog_v / 10;
+
+    if (fe->image) {
+      int w = cairo_image_surface_get_width (fe->image);
+      int h = cairo_image_surface_get_height (fe->image);
+
+      if (fe->pointer_x > w)
+        fe->pointer_x = w;
+      if (fe->pointer_x < 0)
+        fe->pointer_x = 0;
+      if (fe->pointer_y > h)
+        fe->pointer_y = h;
+      if (fe->pointer_y < 0)
+        fe->pointer_y = 0;
+    }
+    ps3_refresh_draw (fe);
+
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+int
 handle_pad (frontend *fe, padData *paddata)
 {
   static int prev_keyval = -1;
   int keyval = -1;
   Ps3MenuRectangle bbox;
+
+  if (handle_pointer (fe, paddata))
+    fe->cursor_last_move = FALSE;
 
   if (paddata->BTN_UP)
     keyval = CURSOR_UP;
@@ -236,22 +287,33 @@ handle_pad (frontend *fe, padData *paddata)
     keyval = CURSOR_LEFT;
   else if (paddata->BTN_RIGHT)
     keyval = CURSOR_RIGHT;
-  else if (paddata->BTN_CROSS)
-    keyval = CURSOR_SELECT;
-  else if (paddata->BTN_CIRCLE)
-    keyval = CURSOR_SELECT2;
-  else if (paddata->BTN_L1)
+
+  if (IS_CURSOR_MOVE (keyval))
+    fe->cursor_last_move = TRUE;
+
+  if (fe->cursor_last_move) {
+    if (paddata->BTN_CROSS)
+      keyval = CURSOR_SELECT;
+    else if (paddata->BTN_CIRCLE)
+      keyval = CURSOR_SELECT2;
+  } else {
+    if (paddata->BTN_CROSS)
+      keyval = LEFT_BUTTON;
+    else if (paddata->BTN_CIRCLE)
+      keyval = RIGHT_BUTTON;
+    else if (paddata->BTN_SQUARE)
+      keyval = MIDDLE_BUTTON;
+  }
+
+  if (paddata->BTN_L1)
     keyval = 'u';
   else if (paddata->BTN_R1)
     keyval = 'r';
-  else if (paddata->BTN_R3)
-    keyval = 'n';
   else if (paddata->BTN_START)
     keyval = 'q';
   else if (paddata->BTN_SELECT)
     keyval = 's';
-  else
-    keyval = -1;
+
 
   if (prev_keyval == keyval)
     return TRUE;
@@ -274,7 +336,8 @@ handle_pad (frontend *fe, padData *paddata)
     }
 
     /* TODO: allow long key presses */
-    if (keyval >= 0 && !midend_process_key (fe->me, 0, 0, keyval))
+    if (keyval >= 0 &&
+        !midend_process_key (fe->me, fe->pointer_x, fe->pointer_y, keyval))
       return FALSE;
 
   } else {
@@ -400,6 +463,11 @@ calculate_puzzle_size (frontend *fe)
   }
   fe->image = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32, w, h);
   assert (fe->image != NULL);
+
+  fe->pointer_x = w / 2;
+  fe->pointer_y = h / 2;
+  fe->cursor_last_move = TRUE;
+
 }
 
 void

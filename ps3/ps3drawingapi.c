@@ -16,6 +16,7 @@
 
 static void draw_background (frontend *fe, cairo_t *cr);
 static void draw_puzzle (frontend *fe, cairo_t *cr);
+static void draw_pointer (frontend *fe, cairo_t *cr);
 static void draw_status_bar (frontend *fe, cairo_t *cr);
 static void draw_main_menu (frontend *fe, cairo_t *cr);
 static void draw_puzzle_menu (frontend *fe, cairo_t *cr);
@@ -248,6 +249,8 @@ ps3_render_buffer (frontend *fe)
       draw_types_menu (fe, cr);
     else if (fe->mode == MODE_MAIN_MENU)
       draw_main_menu (fe, cr);
+    else if (fe->cursor_last_move == FALSE)
+      draw_pointer (fe, cr);
   } else {
     draw_puzzle_menu (fe, cr);
   }
@@ -338,6 +341,17 @@ draw_puzzle (frontend *fe, cairo_t *cr)
 {
   cairo_set_source_surface (cr, fe->image, fe->x, fe->y);
   cairo_paint (cr);
+}
+
+static void
+draw_pointer (frontend *fe, cairo_t *cr)
+{
+  cairo_set_source_rgb (cr, 1.0, 0.0, 0.0);
+  cairo_move_to (cr, fe->pointer_x + fe->x - 5, fe->pointer_y + fe->y);
+  cairo_line_to (cr, fe->pointer_x + fe->x + 5, fe->pointer_y + fe->y);
+  cairo_move_to (cr, fe->pointer_x + fe->x, fe->pointer_y + fe->y - 5);
+  cairo_line_to (cr, fe->pointer_x + fe->x, fe->pointer_y + fe->y + 5);
+  cairo_stroke (cr);
 }
 
 static void

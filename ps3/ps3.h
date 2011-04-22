@@ -34,6 +34,8 @@
 #define STATUS_BAR_AREA_HEIGHT (STATUS_BAR_HEIGHT + (2 * STATUS_BAR_PAD))
 #define STATUS_BAR_TEXT_SIZE (STATUS_BAR_HEIGHT - (2 * STATUS_BAR_IPAD))
 
+#define PAD_STICK_DEADZONE 0x20
+
 #ifndef DISABLE_DEBUG
 #define DEBUG(...) { \
   struct timeval debug_time; \
@@ -77,6 +79,9 @@ struct frontend {
   cairo_surface_t *background;
   int x;
   int y;
+  int pointer_x;
+  int pointer_y;
+  int cursor_last_move;
   int width;
   int height;
   int status_x;
