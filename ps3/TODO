@@ -1,9 +1,8 @@
 - Add a 'resize screen' at boot (some tvs crop the left size of the screen)
 - Redo a cleaner design of the user interface
 - Add a background image to show the in game menus on top instead of just overlaying them
-- Add mouse (analog stick) support
 - Add an about page
 - Add man pages/Help section for each game
 - Add Load/Save options for the games
 - Add the possibility to press and hold a button (d-pad) to make multiple moves
-- Add the possibility to press and hold a button (X - O) while moving the cursor to select multiple grids
+- Add support for dragging the mouse
