@@ -37,9 +37,18 @@ ps3_draw_text (void *handle, int x, int y, int fonttype, int fontsize,
   frontend *fe = (frontend *) handle;
   cairo_font_extents_t fex;
   cairo_text_extents_t tex;
+  cairo_font_options_t *opt;
 
   cairo_save(fe->cr);
   set_colour(fe, colour);
+
+  /* Set antialiasing */
+  opt = cairo_font_options_create ();
+  cairo_get_font_options (fe->cr, opt);
+  cairo_font_options_set_antialias (opt, CAIRO_ANTIALIAS_SUBPIXEL);
+  cairo_set_font_options (fe->cr, opt);
+  cairo_font_options_destroy (opt);
+
   cairo_select_font_face(fe->cr,
       fonttype == FONT_FIXED ? "monospace" : "sans-serif",
       CAIRO_FONT_SLANT_NORMAL,

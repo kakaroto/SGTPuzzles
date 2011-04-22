@@ -20,8 +20,17 @@ _draw_text (Ps3Menu *menu, Ps3MenuItem *item, cairo_t *cr,
 {
   cairo_font_extents_t fex;
   cairo_text_extents_t tex;
+  cairo_font_options_t *opt;
 
   cairo_save (cr);
+
+  /* Set antialiasing */
+  opt = cairo_font_options_create ();
+  cairo_get_font_options (cr, opt);
+  cairo_font_options_set_antialias (opt, CAIRO_ANTIALIAS_SUBPIXEL);
+  cairo_set_font_options (cr, opt);
+  cairo_font_options_destroy (opt);
+
   cairo_select_font_face(cr,
       "sans-serif",
       CAIRO_FONT_SLANT_NORMAL,
