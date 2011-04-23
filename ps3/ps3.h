@@ -34,6 +34,8 @@
 #define STATUS_BAR_AREA_HEIGHT (STATUS_BAR_HEIGHT + (2 * STATUS_BAR_PAD))
 #define STATUS_BAR_TEXT_SIZE (STATUS_BAR_HEIGHT - (2 * STATUS_BAR_IPAD))
 
+#define PUZZLE_MENU_DESCRIPTION_HEIGHT 50
+
 #define PAD_STICK_DEADZONE 0x20
 
 #ifndef DISABLE_DEBUG
@@ -95,5 +97,12 @@ struct frontend {
   Ps3Menu *menu;
 };
 
-void
-create_midend(frontend* fe,const game* game);
+typedef struct {
+  const char *name;
+  const char *description1;
+  const char *description2;
+} PuzzleDescription;
+
+extern const PuzzleDescription puzzle_descriptions[];
+
+void create_midend(frontend* fe,const game* game);

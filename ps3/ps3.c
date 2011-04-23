@@ -35,6 +35,75 @@
 
 static char cwd[1024];
 
+const PuzzleDescription puzzle_descriptions[] = {
+  {"blackbox",
+   "Locate the balls inside the box by firing lasers and observing",
+   "how they are deflected or absorbed."},
+  {"bridges",
+   "Connect the islands with the given bridge counts so "
+   "no bridges are crossing."},
+  {"cube", "Roll the cube to collect all the paint."},
+  {"dominosa", "Pair the numbers to form a complete and distinct set "
+   "of dominoes."},
+  {"fifteen", "Slide tiles around to form a grid in numerical order."},
+  {"filling", "Number the squares to form regions with the same number,",
+   "which is also the size of the region."},
+  {"flip", "Turn over squares until all are light side up,",
+   "but flipping one flips its neighbours."},
+  {"galaxies", "Divide the grid into 180-degree rotationally symmetric",
+   "regions each centred on a dot."},
+  {"guess", "Guess the hidden colour sequence: ",
+   "black is correct, white is the correct colour in the wrong place."},
+  {"inertia", "Move the ball around to collect all the gems without "
+   "hitting a mine."},
+  {"keen", "Enter digits so every row and column contains exactly one",
+   "of each digit and the arithmetic clues are satisfied."},
+  {"lightup", "Place lamps so all squares are lit, no lamp lights another",
+   "and numbered squares have the given number of adjacent lamps."},
+  {"loopy", "Draw a single unbroken and uncrossing line such that",
+   "numbered squares have the given number of edges filled."},
+  {"magnets", "Place magnets and neutrals to satisfy the +/- counts",
+   "and avoid magnets repelling."},
+  {"map", "Copy the 4 colours to colour the map with no regions",
+   "of the same colour touching."},
+  {"mines", "Uncover all squares except the mines using",
+   "the given counts of adjacent mines."},
+  {"net", "Rotate tiles to connect all tiles to the centre tile."},
+  {"netslide", "Slide rows and columns to connect all tiles to the centre "
+   "tile."},
+  {"pattern", "Fill the grid so that the numbers are the length",
+   "of each stretch of black tiles in order."},
+  {"pegs", "Remove pegs by jumping others over them, until only one "
+   "is left."},
+  {"range", "Place black squares to limit the visible distance from "
+   "each numbered cell."},
+  {"rect", "Divide the grid into rectangles containing only one number,",
+   "which is also the area of the rectangle."},
+  {"samegame", "Remove groups (2 or more) of the same colour to clear the grid,",
+   "scoring more for larger groups."},
+  {"signpost", "Connect the squares into a path following the arrows."},
+  {"singles", "Remove numbers so no number appears twice in any row/column,",
+   "no two black squares are adjacent and the white squares are "
+   "all connected."},
+  {"sixteen", "Slide rows and columns around to form a grid in numerical "
+   "order."},
+  {"slant", "Draw diagonal lines in every square such that circles have",
+   "the given numbers of lines meeting at them and there are no loops."},
+  {"solo", "Fill the grid so each block, row and column contains exactly "
+   "one of each digit."},
+  {"tents",
+   "Place tents so each tree has a separate adjacent tent (not diagonally),",
+   "no tents are next to each other and the row and column counts are correct."},
+  {"towers", "Place towers so each row/column contains one of each height "
+   "and each clue ",
+   "matches the number of towers visible looking into the grid "
+   "from that point."},
+  {"twiddle", "Rotate groups of 4 to form a grid in numerical order."},
+  {"unequal", "Enter digits so every row and column contains exactly",
+   "one of each digit and the greater-than signs are satisfied."},
+  {"untangle", "Move points around until no lines cross."}
+};
+
 static void calculate_puzzle_size (frontend *fe);
 
 void
@@ -151,15 +220,17 @@ create_main_menu (frontend * fe) {
 void
 create_puzzle_menu (frontend * fe) {
   cairo_surface_t *surface;
+  int width, height;
   int i ;
 
+  width = fe->width * 0.9;
+  height = (fe->height - PUZZLE_MENU_DESCRIPTION_HEIGHT) * 0.9;
   fe->mode = MODE_PUZZLE_MENU;
-  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      680, fe->height * 0.9);
+  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32, width, height);
 
   /* Infinite vertical scrollable menu */
-  fe->menu = ps3_menu_new (surface, -1, 4, 130, 150);
-  fe->menu->pad_x = 20;
+  fe->menu = ps3_menu_new_full (surface, -1, 4, (width / 4) - (2 * 20), 150,
+      20, 5, NULL, NULL, NULL);
   cairo_surface_destroy (surface);
 
   for (i = 0; i < gamecount; i++) {

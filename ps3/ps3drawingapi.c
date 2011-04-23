@@ -402,7 +402,11 @@ static void
 draw_puzzle_menu (frontend *fe, cairo_t *cr)
 {
   cairo_surface_t *surface;
-  int w, h;
+  cairo_font_extents_t fex;
+  cairo_text_extents_t tex;
+  const char *description1;
+  const char *description2;
+  int x, y, w, h;
 
   ps3_menu_redraw (fe->menu);
   surface = ps3_menu_get_surface (fe->menu);
@@ -410,9 +414,43 @@ draw_puzzle_menu (frontend *fe, cairo_t *cr)
   h = cairo_image_surface_get_height (surface);
 
   cairo_set_source_surface (cr, surface, (fe->width - w) / 2,
-      (fe->height - h) / 2);
+      (fe->height - PUZZLE_MENU_DESCRIPTION_HEIGHT - h) / 2);
   cairo_paint (cr);
   cairo_surface_destroy (surface);
+
+
+  /* Draw game description */
+  description1 = puzzle_descriptions[fe->menu->selection].description1;
+  description2 = puzzle_descriptions[fe->menu->selection].description2;
+  cairo_save(cr);
+  cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+
+  cairo_select_font_face(cr, "Arial",
+      CAIRO_FONT_SLANT_NORMAL,
+      CAIRO_FONT_WEIGHT_BOLD);
+
+  cairo_set_font_size(cr, 20);
+
+  cairo_font_extents (cr, &fex);
+
+  y = fe->height - (PUZZLE_MENU_DESCRIPTION_HEIGHT / 2);
+  /* Center the description */
+  if (description2 == NULL)
+    y += fex.ascent / 2;
+  else
+    y -= fex.descent;
+
+  cairo_text_extents (cr, description1, &tex);
+  x = ((fe->width - tex.width) / 2) - tex.x_bearing;
+  cairo_move_to(cr, x, y);
+  cairo_show_text (cr, description1);
+
+  cairo_text_extents (cr, description2, &tex);
+  x = ((fe->width - tex.width) / 2) - tex.x_bearing;
+  cairo_move_to(cr, x, y + tex.height);
+  cairo_show_text (cr, description2);
+
+  cairo_restore(cr);
 }
 
 // blitted copy pasted :)
