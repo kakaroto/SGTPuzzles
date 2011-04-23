@@ -276,9 +276,10 @@ handle_pad (frontend *fe, padData *paddata)
   int keyval = -1;
   Ps3MenuRectangle bbox;
   struct timeval now;
+  int mouse_moved = FALSE;
 
   if (handle_pointer (fe, paddata))
-    fe->cursor_last_move = FALSE;
+    mouse_moved = TRUE;
 
   if (paddata->BTN_UP)
     keyval = CURSOR_UP;
@@ -288,6 +289,9 @@ handle_pad (frontend *fe, padData *paddata)
     keyval = CURSOR_LEFT;
   else if (paddata->BTN_RIGHT)
     keyval = CURSOR_RIGHT;
+
+  if (mouse_moved)
+    fe->cursor_last_move = FALSE;
 
   if (IS_CURSOR_MOVE (keyval)) {
     fe->cursor_last_move = TRUE;
@@ -324,7 +328,30 @@ handle_pad (frontend *fe, padData *paddata)
       keyval = RIGHT_BUTTON;
     else if (paddata->BTN_SQUARE)
       keyval = MIDDLE_BUTTON;
+    else {
+      if (fe->current_button_pressed == LEFT_BUTTON ||
+          fe->current_button_pressed == LEFT_DRAG)
+        keyval = LEFT_RELEASE;
+      else if (fe->current_button_pressed == RIGHT_BUTTON ||
+          fe->current_button_pressed == RIGHT_DRAG)
+        keyval = RIGHT_RELEASE;
+      else if (fe->current_button_pressed == MIDDLE_BUTTON ||
+          fe->current_button_pressed == MIDDLE_DRAG)
+        keyval = MIDDLE_RELEASE;
+    }
+
+    if (IS_MOUSE_DRAG (fe->current_button_pressed))
+      mouse_moved = TRUE;
+
+    if (keyval == LEFT_BUTTON && mouse_moved)
+      keyval = LEFT_DRAG;
+    else if (keyval == RIGHT_BUTTON && mouse_moved)
+      keyval = RIGHT_DRAG;
+    else if (keyval == MIDDLE_BUTTON && mouse_moved)
+      keyval = MIDDLE_DRAG;
+    fe->current_button_pressed = keyval;
   }
+
 
   if (paddata->BTN_L1)
     keyval = 'u';
@@ -336,7 +363,8 @@ handle_pad (frontend *fe, padData *paddata)
     keyval = 's';
 
 
-  if (!IS_CURSOR_MOVE (keyval) && prev_keyval == keyval)
+  if (!IS_CURSOR_MOVE (keyval) && !IS_MOUSE_DRAG (keyval) &&
+      prev_keyval == keyval)
     return TRUE;
 
   /* Store previous key to avoid flooding the same keypress */
