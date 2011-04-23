@@ -275,6 +275,7 @@ handle_pad (frontend *fe, padData *paddata)
   static int prev_keyval = -1;
   int keyval = -1;
   Ps3MenuRectangle bbox;
+  struct timeval now;
 
   if (handle_pointer (fe, paddata))
     fe->cursor_last_move = FALSE;
@@ -288,8 +289,28 @@ handle_pad (frontend *fe, padData *paddata)
   else if (paddata->BTN_RIGHT)
     keyval = CURSOR_RIGHT;
 
-  if (IS_CURSOR_MOVE (keyval))
+  if (IS_CURSOR_MOVE (keyval)) {
     fe->cursor_last_move = TRUE;
+
+    if (fe->last_cursor_pressed == -1)
+      gettimeofday (&fe->cursor_last_ts, NULL);
+
+    if (fe->last_cursor_pressed == keyval) {
+      double elapsed;
+
+      gettimeofday (&now, NULL);
+      elapsed = ((now.tv_usec - fe->cursor_last_ts.tv_usec) * 0.000001 +
+          (now.tv_sec - fe->cursor_last_ts.tv_sec));
+      if (elapsed > 0.25)
+        fe->cursor_last_ts = now;
+      else
+        keyval = -1;
+    } else {
+      fe->last_cursor_pressed = keyval;
+    }
+  } else {
+    fe->last_cursor_pressed = -1;
+  }
 
   if (fe->cursor_last_move) {
     if (paddata->BTN_CROSS)
@@ -315,7 +336,7 @@ handle_pad (frontend *fe, padData *paddata)
     keyval = 's';
 
 
-  if (prev_keyval == keyval)
+  if (!IS_CURSOR_MOVE (keyval) && prev_keyval == keyval)
     return TRUE;
 
   /* Store previous key to avoid flooding the same keypress */
@@ -383,20 +404,20 @@ handle_pad (frontend *fe, padData *paddata)
         fe->menu = NULL;
         main_menu_items[selected_item].callback (fe);
       }
-    } else if (paddata->BTN_UP) {
-      ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_UP,&bbox);
+    } else if (keyval == CURSOR_UP) {
+      ps3_menu_handle_input (fe->menu, PS3_MENU_INPUT_UP, &bbox);
       ps3_refresh_draw (fe);
       return TRUE;
-    } else if (paddata->BTN_DOWN) {
-      ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_DOWN,&bbox);
+    } else if (keyval == CURSOR_DOWN) {
+      ps3_menu_handle_input (fe->menu, PS3_MENU_INPUT_DOWN, &bbox);
       ps3_refresh_draw (fe);
       return TRUE;
-    } else if (paddata->BTN_LEFT) {
-      ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_LEFT,&bbox);
+    } else if (keyval == CURSOR_LEFT) {
+      ps3_menu_handle_input (fe->menu, PS3_MENU_INPUT_LEFT, &bbox);
       ps3_refresh_draw (fe);
       return TRUE;
-    } else if (paddata->BTN_RIGHT) {
-      ps3_menu_handle_input(fe->menu,PS3_MENU_INPUT_RIGHT,&bbox);
+    } else if (keyval == CURSOR_RIGHT) {
+      ps3_menu_handle_input (fe->menu, PS3_MENU_INPUT_RIGHT, &bbox);
       ps3_refresh_draw (fe);
       return TRUE;
     }
@@ -467,7 +488,7 @@ calculate_puzzle_size (frontend *fe)
   fe->pointer_x = w / 2;
   fe->pointer_y = h / 2;
   fe->cursor_last_move = TRUE;
-
+  fe->last_cursor_pressed = -1;
 }
 
 void

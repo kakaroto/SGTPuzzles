@@ -82,6 +82,8 @@ struct frontend {
   int pointer_x;
   int pointer_y;
   int cursor_last_move;
+  int last_cursor_pressed;
+  struct timeval cursor_last_ts;
   int width;
   int height;
   int status_x;
