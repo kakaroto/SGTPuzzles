@@ -105,6 +105,9 @@ const PuzzleDescription puzzle_descriptions[] = {
 };
 
 static void calculate_puzzle_size (frontend *fe);
+static void create_puzzle_menu (frontend * fe);
+static void destroy_midend (frontend * fe);
+static void create_midend (frontend* fe, int game_idx);
 
 void
 fatal (char *fmt, ...)
@@ -132,6 +135,122 @@ get_random_seed (void **randseed, int *randseedsize)
 }
 
 void
+frontend_default_colour (frontend * fe, float *output)
+{
+  /* let's use grey as the background */
+  output[0] = output[1] = output[2] = 0.7;
+}
+
+void
+deactivate_timer (frontend * fe)
+{
+  fe->timer_enabled = FALSE;
+}
+
+void
+activate_timer (frontend * fe)
+{
+  gettimeofday(&fe->timer_last_ts, NULL);
+  fe->timer_enabled = TRUE;
+}
+
+static const struct drawing_api ps3_drawing = {
+  ps3_draw_text,
+  ps3_draw_rect,
+  ps3_draw_line,
+  ps3_draw_poly,
+  ps3_draw_circle,
+  ps3_draw_update,
+  ps3_clip,
+  ps3_unclip,
+  ps3_start_draw,
+  ps3_end_draw,
+  ps3_status_bar,
+  ps3_blitter_new,
+  ps3_blitter_free,
+  ps3_blitter_save,
+  ps3_blitter_load,
+  NULL, NULL, NULL, NULL, NULL, NULL,   /* {begin,end}_{doc,page,puzzle} */
+  NULL, NULL,                   /* line_width, line_dotted */
+  NULL,
+  ps3_draw_thick_line,
+};
+
+static void
+_new_game (frontend *fe)
+{
+  midend_new_game (fe->me);
+  midend_force_redraw(fe->me);
+}
+
+static void
+_restart_game (frontend *fe)
+{
+  midend_restart_game (fe->me);
+  midend_force_redraw(fe->me);
+}
+
+static void
+_save_game (frontend *fe)
+{
+  printf ("Save Game\n");
+}
+
+static void
+_load_game (frontend *fe)
+{
+  printf ("Load Game\n");
+}
+
+static void
+_solve_game (frontend *fe)
+{
+  midend_solve (fe->me);
+  midend_force_redraw(fe->me);
+}
+
+static void
+_change_game (frontend *fe)
+{
+  destroy_midend (fe);
+  create_puzzle_menu (fe);
+  ps3_refresh_draw(fe);
+}
+
+
+static const struct {
+  const char *title;
+  void (*callback) (frontend *fe);
+} main_menu_items[] = {
+  {"New Game", _new_game},
+  {"Restart Game", _restart_game},
+  {"Save Game", _save_game},
+  {"Load Game", _load_game},
+  {"Solve", _solve_game},
+  {"Change Puzzle", _change_game},
+  {NULL, NULL},
+};
+
+static void
+create_main_menu (frontend * fe) {
+  cairo_surface_t *surface;
+  int i;
+
+  fe->mode = MODE_MAIN_MENU;
+  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
+      306, fe->height * 0.7);
+
+  /* Infinite vertical scrollable menu */
+  fe->menu = ps3_menu_new (surface, -1, 1, 300, 40);
+  for (i = 0; main_menu_items[i].title; i++) {
+    ps3_menu_add_item (fe->menu, main_menu_items[i].title, 25);
+
+    if (main_menu_items[i].callback == _solve_game)
+      fe->menu->items[i].enabled = fe->thegame->can_solve;
+  }
+}
+
+static void
 create_types_menu (frontend * fe){
   cairo_surface_t *surface;
   int n;
@@ -159,65 +278,7 @@ create_types_menu (frontend * fe){
   }
 }
 
-void create_puzzle_menu (frontend * fe);
-void destroy_midend (frontend * fe);
-
-void _change_game (frontend *fe)
-{
-  destroy_midend (fe);
-  create_puzzle_menu (fe);
-  ps3_refresh_draw(fe);
-}
-
-void _new_game (frontend *fe)
-{
-  midend_new_game (fe->me);
-  midend_force_redraw(fe->me);
-}
-
-void _restart_game (frontend *fe)
-{
-  midend_restart_game (fe->me);
-  midend_force_redraw(fe->me);
-}
-
-void _solve_game (frontend *fe)
-{
-  midend_solve (fe->me);
-  midend_force_redraw(fe->me);
-}
-
-struct {
-  const char *title;
-  void (*callback) (frontend *fe);
-} main_menu_items[] = {
-  {"Change game", _change_game},
-  {"New game", _new_game},
-  {"Restart game", _restart_game},
-  {"Solve", _solve_game},
-  {NULL, NULL},
-};
-
-void
-create_main_menu (frontend * fe) {
-  cairo_surface_t *surface;
-  int i;
-
-  fe->mode = MODE_MAIN_MENU;
-  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      306, fe->height * 0.7);
-
-  /* Infinite vertical scrollable menu */
-  fe->menu = ps3_menu_new (surface, -1, 1, 300, 40);
-  for (i = 0; main_menu_items[i].title; i++) {
-    ps3_menu_add_item (fe->menu, main_menu_items[i].title, 25);
-
-    if (main_menu_items[i].callback == _solve_game)
-      fe->menu->items[i].enabled = fe->thegame->can_solve;
-  }
-}
-
-void
+static void
 create_puzzle_menu (frontend * fe) {
   cairo_surface_t *surface;
   int width, height;
@@ -247,52 +308,7 @@ create_puzzle_menu (frontend * fe) {
   }
 }
 
-void
-frontend_default_colour (frontend * fe, float *output)
-{
-  /* let's use grey as the background */
-  output[0] = output[1] = output[2] = 0.7;
-}
-
-const struct drawing_api ps3_drawing = {
-  ps3_draw_text,
-  ps3_draw_rect,
-  ps3_draw_line,
-  ps3_draw_poly,
-  ps3_draw_circle,
-  ps3_draw_update,
-  ps3_clip,
-  ps3_unclip,
-  ps3_start_draw,
-  ps3_end_draw,
-  ps3_status_bar,
-  ps3_blitter_new,
-  ps3_blitter_free,
-  ps3_blitter_save,
-  ps3_blitter_load,
-  NULL, NULL, NULL, NULL, NULL, NULL,   /* {begin,end}_{doc,page,puzzle} */
-  NULL, NULL,                   /* line_width, line_dotted */
-  NULL,
-  ps3_draw_thick_line,
-};
-
-void
-deactivate_timer (frontend * fe)
-{
-  DEBUG ("Stopping timer\n");
-  fe->timer_enabled = FALSE;
-}
-
-void
-activate_timer (frontend * fe)
-{
-  gettimeofday(&fe->timer_last_ts, NULL);
-  fe->timer_enabled = TRUE;
-  DEBUG ("Starting timer at : %lu.%lu\n", fe->timer_last_ts.tv_sec,
-      fe->timer_last_ts.tv_usec);
-}
-
-int
+static int
 handle_pointer (frontend *fe, padData *paddata)
 {
   int analog_h, analog_v;
@@ -340,7 +356,7 @@ handle_pointer (frontend *fe, padData *paddata)
   return FALSE;
 }
 
-int
+static int
 handle_pad (frontend *fe, padData *paddata)
 {
   static int prev_keyval = -1;
@@ -479,7 +495,7 @@ handle_pad (frontend *fe, padData *paddata)
         ps3_menu_free (fe->menu);
         fe->menu = NULL;
 
-        create_midend(fe, gamelist[selected_item]);
+        create_midend (fe, selected_item);
 
       } else if (fe->mode == MODE_TYPES_MENU) {
         /* Type selected */
@@ -590,14 +606,15 @@ calculate_puzzle_size (frontend *fe)
   fe->last_cursor_pressed = -1;
 }
 
-void
-create_midend(frontend* fe, const game* game)
+static void
+create_midend (frontend* fe, int game_idx)
 {
   if(fe->me) {
     midend_free(fe->me);
   }
 
-  fe->thegame = game;
+  fe->game_idx = game_idx;
+  fe->thegame = gamelist[fe->game_idx];
   fe->me = midend_new (fe, fe->thegame, &ps3_drawing, fe);
   fe->colours = midend_colours(fe->me, &fe->ncolours);
   midend_new_game (fe->me);
@@ -609,7 +626,7 @@ create_midend(frontend* fe, const game* game)
   midend_force_redraw(fe->me);
 }
 
-void
+static void
 destroy_midend (frontend *fe)
 {
   if(fe->me) {
@@ -629,7 +646,7 @@ destroy_midend (frontend *fe)
   }
 }
 
-frontend *
+static frontend *
 new_window ()
 {
   frontend *fe;
@@ -670,7 +687,7 @@ new_window ()
   return fe;
 }
 
-void
+static void
 destroy_window (frontend *fe)
 {
   int i;
@@ -699,6 +716,7 @@ destroy_window (frontend *fe)
 }
 
 typedef struct {
+  int drawing;
   int opened;
   int closed;
   int exit;
@@ -718,6 +736,10 @@ event_handler (u64 status, u64 param, void * user_data)
   } else if (status == SYSUTIL_MENU_CLOSE) {
     xmb->opened = 0;
     xmb->closed = 1;
+  } else if (status == SYSUTIL_DRAW_BEGIN) {
+    xmb->drawing = 1;
+  } else if (status == SYSUTIL_DRAW_END) {
+    xmb->drawing = 0;
   }
 }
 
@@ -781,12 +803,13 @@ main (int argc, char *argv[])
      * It seems the XMB needs to get our buffers so it can overlay itself on top.
      * If we stop flipping buffers, the xmb will freeze.
      */
-    if (xmb.opened) {
+    if (xmb.opened || xmb.drawing) {
       rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
 
       setRenderTarget(fe->context, buffer);
       /* Wait for the last flip to finish, so we can draw to the old buffer */
       waitFlip ();
+      memset (buffer->ptr, 0, buffer->height * buffer->width * 4);
       /* Flip buffer onto screen */
       flipBuffer (fe->context, fe->currentBuffer);
       fe->currentBuffer++;
@@ -795,6 +818,7 @@ main (int argc, char *argv[])
     }
     if (xmb.closed) {
       ps3_refresh_draw (fe);
+      xmb.closed = 0;
     }
 
 #if SHOW_FPS || STATUS_BAR_SHOW_FPS

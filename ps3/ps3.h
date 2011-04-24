@@ -9,7 +9,9 @@
  */
 
 
-#pragma once
+#ifndef __PS3_H__
+#define __PS3_H__
+
 #include <sysutil/video.h>
 #include <rsx/gcm_sys.h>
 #include <rsx/rsx.h>
@@ -71,6 +73,7 @@ struct frontend {
   /* The buffers we will be drawing into. */
   rsxBuffer buffers[MAX_BUFFERS];
   int currentBuffer;
+  int game_idx;
   const game* thegame;
   midend *me;
   const float *colours;
@@ -105,4 +108,4 @@ typedef struct {
 
 extern const PuzzleDescription puzzle_descriptions[];
 
-void create_midend(frontend* fe,const game* game);
+#endif /* __PS3_H__ */
