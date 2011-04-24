@@ -13,6 +13,8 @@
 #define __PS3_H__
 
 #include <sysutil/video.h>
+#include <sys/thread.h>
+#include <sysutil/save.h>
 #include <rsx/gcm_sys.h>
 #include <rsx/rsx.h>
 #include <ppu-types.h>
@@ -65,6 +67,15 @@ struct blitter {
   int w, h, x, y;
 };
 
+typedef struct {
+  sys_ppu_thread_t save_tid;
+  int saving;
+  int loading;
+  char prefix[SYS_SAVE_MAX_DIRECTORY_NAME];
+  sysSaveNewSaveGame new_save;
+  sysSaveNewSaveGameIcon new_save_icon;
+} SaveData;
+
 struct frontend {
   /* RSX device context */
   gcmContextData *context;
@@ -98,6 +109,7 @@ struct frontend {
   int timer_enabled;
   GameMode mode;
   Ps3Menu *menu;
+  SaveData save_data;
 };
 
 typedef struct {

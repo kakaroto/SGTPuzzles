@@ -27,6 +27,7 @@
 #include <sys/time.h>
 
 #include "ps3.h"
+#include "ps3save.h"
 #include "ps3drawingapi.h"
 
 #define SHOW_FPS FALSE
@@ -193,13 +194,15 @@ _restart_game (frontend *fe)
 static void
 _save_game (frontend *fe)
 {
-  printf ("Save Game\n");
+  if (ps3_save_game (fe) == FALSE)
+    ps3_refresh_draw(fe);
 }
 
 static void
 _load_game (frontend *fe)
 {
-  printf ("Load Game\n");
+  if (ps3_load_game (fe) == FALSE)
+    ps3_refresh_draw(fe);
 }
 
 static void
@@ -622,6 +625,7 @@ create_midend (frontend* fe, int game_idx)
   calculate_puzzle_size (fe);
 
   fe->mode = MODE_PUZZLE;
+  memset (&fe->save_data, 0, sizeof(SaveData));
 
   midend_force_redraw(fe->me);
 }
@@ -819,6 +823,11 @@ main (int argc, char *argv[])
     if (xmb.closed) {
       ps3_refresh_draw (fe);
       xmb.closed = 0;
+    }
+    if ((fe->save_data.saving || fe->save_data.loading) &&
+        fe->save_data.save_tid == 0) {
+      fe->save_data.saving = fe->save_data.loading = FALSE;
+      ps3_refresh_draw(fe);
     }
 
 #if SHOW_FPS || STATUS_BAR_SHOW_FPS
