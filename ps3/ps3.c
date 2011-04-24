@@ -195,14 +195,14 @@ static void
 _save_game (frontend *fe)
 {
   if (ps3_save_game (fe) == FALSE)
-    ps3_refresh_draw(fe);
+    fe->redraw = TRUE;
 }
 
 static void
 _load_game (frontend *fe)
 {
   if (ps3_load_game (fe) == FALSE)
-    ps3_refresh_draw(fe);
+    fe->redraw = TRUE;
 }
 
 static void
@@ -217,7 +217,7 @@ _change_game (frontend *fe)
 {
   destroy_midend (fe);
   create_puzzle_menu (fe);
-  ps3_refresh_draw(fe);
+  fe->redraw = TRUE;
 }
 
 
@@ -351,7 +351,7 @@ handle_pointer (frontend *fe, padData *paddata)
       if (fe->pointer_y < 0)
         fe->pointer_y = 0;
     }
-    ps3_refresh_draw (fe);
+    fe->redraw = TRUE;
 
     return TRUE;
   }
@@ -463,14 +463,14 @@ handle_pad (frontend *fe, padData *paddata)
   if (fe->mode == MODE_PUZZLE) {
     if (paddata->BTN_SELECT) {
       create_types_menu (fe);
-      ps3_refresh_draw (fe);
+      fe->redraw = TRUE;
       return TRUE;
     }
     if (paddata->BTN_START) {
       /* TODO: need to create the menu */
       create_main_menu (fe);
       fe->mode = MODE_MAIN_MENU;
-      ps3_refresh_draw (fe);
+      fe->redraw = TRUE;
       return TRUE;
     }
 
@@ -487,7 +487,7 @@ handle_pad (frontend *fe, padData *paddata)
         if (fe->menu != NULL)
           ps3_menu_free (fe->menu);
         fe->menu = NULL;
-        ps3_refresh_draw (fe);
+        fe->redraw = TRUE;
         return TRUE;
       }
     } else if (paddata->BTN_CROSS) {
@@ -524,19 +524,19 @@ handle_pad (frontend *fe, padData *paddata)
       }
     } else if (keyval == CURSOR_UP) {
       ps3_menu_handle_input (fe->menu, PS3_MENU_INPUT_UP, &bbox);
-      ps3_refresh_draw (fe);
+      fe->redraw = TRUE;
       return TRUE;
     } else if (keyval == CURSOR_DOWN) {
       ps3_menu_handle_input (fe->menu, PS3_MENU_INPUT_DOWN, &bbox);
-      ps3_refresh_draw (fe);
+      fe->redraw = TRUE;
       return TRUE;
     } else if (keyval == CURSOR_LEFT) {
       ps3_menu_handle_input (fe->menu, PS3_MENU_INPUT_LEFT, &bbox);
-      ps3_refresh_draw (fe);
+      fe->redraw = TRUE;
       return TRUE;
     } else if (keyval == CURSOR_RIGHT) {
       ps3_menu_handle_input (fe->menu, PS3_MENU_INPUT_RIGHT, &bbox);
-      ps3_refresh_draw (fe);
+      fe->redraw = TRUE;
       return TRUE;
     }
   }
@@ -686,7 +686,7 @@ new_window ()
 
   create_puzzle_menu (fe);
 
-  ps3_refresh_draw (fe);
+  fe->redraw = TRUE;
 
   return fe;
 }
@@ -782,6 +782,8 @@ main (int argc, char *argv[])
   /* Main loop */
   while (xmb.exit == 0)
   {
+    fe->redraw = 0;
+
     ioPadGetInfo (&padinfo);
     for (i = 0; i < MAX_PADS; i++) {
       if (padinfo.status[i]) {
@@ -821,13 +823,13 @@ main (int argc, char *argv[])
         fe->currentBuffer = 0;
     }
     if (xmb.closed) {
-      ps3_refresh_draw (fe);
       xmb.closed = 0;
+      fe->redraw = TRUE;
     }
     if ((fe->save_data.saving || fe->save_data.loading) &&
         fe->save_data.save_tid == 0) {
       fe->save_data.saving = fe->save_data.loading = FALSE;
-      ps3_refresh_draw(fe);
+      fe->redraw = TRUE;
     }
 
 #if SHOW_FPS || STATUS_BAR_SHOW_FPS
@@ -839,7 +841,8 @@ main (int argc, char *argv[])
       elapsed = ((now.tv_usec - previous_time.tv_usec) * 0.000001 +
           (now.tv_sec - previous_time.tv_sec));
       previous_time = now;
-      ps3_refresh_draw (fe);
+      fe->redraw = TRUE;
+
 #if SHOW_FPS
       DEBUG ("FPS : %f\n", 1 / elapsed);
 #endif
@@ -852,6 +855,9 @@ main (int argc, char *argv[])
 #endif
     }
 #endif
+
+    if (fe->redraw)
+      ps3_refresh_draw (fe);
 
     frame++;
     /* We need to poll for events */

@@ -219,6 +219,83 @@ ps3_status_bar (void *handle, char *text)
 }
 
 void
+ps3_start_draw (void *handle)
+{
+  frontend *fe = (frontend *) handle;
+
+  assert (fe->image != NULL);
+
+  fe->cr = cairo_create (fe->image);
+
+  cairo_set_antialias (fe->cr, CAIRO_ANTIALIAS_GRAY);
+  cairo_set_line_width (fe->cr, 1.0);
+  cairo_set_line_cap (fe->cr, CAIRO_LINE_CAP_SQUARE);
+  cairo_set_line_join (fe->cr, CAIRO_LINE_JOIN_ROUND);
+}
+
+void
+ps3_end_draw (void *handle)
+{
+  frontend *fe = (frontend *) handle;
+
+  /* Release Surface */
+  cairo_destroy (fe->cr);
+  fe->cr = NULL;
+
+  fe->redraw = TRUE;
+}
+
+
+
+// blitted copy pasted :)
+
+blitter *
+ps3_blitter_new (void *handle, int w, int h)
+{
+  blitter *bl = snew (blitter);
+
+  bl->image = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
+  bl->w = w;
+  bl->h = h;
+  return bl;
+}
+
+void
+ps3_blitter_free (void *handle, blitter * bl)
+{
+  cairo_surface_destroy (bl->image);
+  sfree (bl);
+}
+
+void
+ps3_blitter_save (void *handle, blitter * bl, int x, int y)
+{
+  frontend *fe = (frontend *) handle;
+  cairo_t *cr = cairo_create (bl->image);
+
+  cairo_set_source_surface (cr, fe->image, -x, -y);
+  cairo_paint (cr);
+  cairo_destroy (cr);
+  bl->x = x;
+  bl->y = y;
+}
+
+void
+ps3_blitter_load (void *handle, blitter * bl, int x, int y)
+{
+  frontend *fe = (frontend *) handle;
+
+  if (x == BLITTER_FROMSAVED && y == BLITTER_FROMSAVED) {
+    x = bl->x;
+    y = bl->y;
+  }
+  cairo_set_source_surface (fe->cr, bl->image, x, y);
+  cairo_paint (fe->cr);
+}
+
+// blitter end copy pasted
+
+void
 ps3_prepare_buffer (frontend *fe)
 {
   rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
@@ -264,35 +341,6 @@ ps3_render_buffer (frontend *fe)
   fe->currentBuffer++;
   if (fe->currentBuffer >= MAX_BUFFERS)
     fe->currentBuffer = 0;
-}
-
-void
-ps3_start_draw (void *handle)
-{
-  frontend *fe = (frontend *) handle;
-
-  assert (fe->image != NULL);
-
-  ps3_prepare_buffer (fe);
-
-  fe->cr = cairo_create (fe->image);
-
-  cairo_set_antialias (fe->cr, CAIRO_ANTIALIAS_GRAY);
-  cairo_set_line_width (fe->cr, 1.0);
-  cairo_set_line_cap (fe->cr, CAIRO_LINE_CAP_SQUARE);
-  cairo_set_line_join (fe->cr, CAIRO_LINE_JOIN_ROUND);
-}
-
-void
-ps3_end_draw (void *handle)
-{
-  frontend *fe = (frontend *) handle;
-
-  /* Release Surface */
-  cairo_destroy (fe->cr);
-  fe->cr = NULL;
-
-  ps3_render_buffer (fe);
 }
 
 void
@@ -452,51 +500,3 @@ draw_puzzle_menu (frontend *fe, cairo_t *cr)
 
   cairo_restore(cr);
 }
-
-// blitted copy pasted :)
-
-blitter *
-ps3_blitter_new (void *handle, int w, int h)
-{
-  blitter *bl = snew (blitter);
-
-  bl->image = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
-  bl->w = w;
-  bl->h = h;
-  return bl;
-}
-
-void
-ps3_blitter_free (void *handle, blitter * bl)
-{
-  cairo_surface_destroy (bl->image);
-  sfree (bl);
-}
-
-void
-ps3_blitter_save (void *handle, blitter * bl, int x, int y)
-{
-  frontend *fe = (frontend *) handle;
-  cairo_t *cr = cairo_create (bl->image);
-
-  cairo_set_source_surface (cr, fe->image, -x, -y);
-  cairo_paint (cr);
-  cairo_destroy (cr);
-  bl->x = x;
-  bl->y = y;
-}
-
-void
-ps3_blitter_load (void *handle, blitter * bl, int x, int y)
-{
-  frontend *fe = (frontend *) handle;
-
-  if (x == BLITTER_FROMSAVED && y == BLITTER_FROMSAVED) {
-    x = bl->x;
-    y = bl->y;
-  }
-  cairo_set_source_surface (fe->cr, bl->image, x, y);
-  cairo_paint (fe->cr);
-}
-
-// blitter end copy pasted
