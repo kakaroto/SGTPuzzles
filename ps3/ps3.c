@@ -433,12 +433,14 @@ handle_pad (frontend *fe, padData *paddata)
     if (IS_MOUSE_DRAG (fe->current_button_pressed))
       mouse_moved = TRUE;
 
-    if (keyval == LEFT_BUTTON && mouse_moved)
-      keyval = LEFT_DRAG;
-    else if (keyval == RIGHT_BUTTON && mouse_moved)
-      keyval = RIGHT_DRAG;
-    else if (keyval == MIDDLE_BUTTON && mouse_moved)
-      keyval = MIDDLE_DRAG;
+    if (fe->current_button_pressed != -1) {
+      if (keyval == LEFT_BUTTON && mouse_moved)
+        keyval = LEFT_DRAG;
+      else if (keyval == RIGHT_BUTTON && mouse_moved)
+        keyval = RIGHT_DRAG;
+      else if (keyval == MIDDLE_BUTTON && mouse_moved)
+        keyval = MIDDLE_DRAG;
+    }
     fe->current_button_pressed = keyval;
   }
 
