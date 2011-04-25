@@ -541,6 +541,7 @@ main_loop_iterate (frontend *fe)
    * If we stop flipping buffers, the xmb will freeze.
    */
   if (fe->xmb.opened || fe->xmb.drawing) {
+    /* TODO: Once performance is fixed, only set redraw to TRUE */
     rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
 
     setRenderTarget(fe->context, buffer);
