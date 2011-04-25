@@ -9,14 +9,12 @@
 
 #include "ps3graphics.h"
 #include "ps3save.h"
+#include <math.h>
 
 static void draw_background (frontend *fe, cairo_t *cr);
 static void draw_puzzle (frontend *fe, cairo_t *cr);
 static void draw_pointer (frontend *fe, cairo_t *cr);
 static void draw_status_bar (frontend *fe, cairo_t *cr);
-static void draw_main_menu (frontend *fe, cairo_t *cr);
-static void draw_puzzles_menu (frontend *fe, cairo_t *cr);
-static void draw_types_menu (frontend *fe, cairo_t *cr);
 
 void
 ps3_redraw_screen (frontend *fe)
@@ -40,7 +38,7 @@ ps3_redraw_screen (frontend *fe)
     draw_puzzle (fe, cr);
     draw_status_bar (fe, cr);
   }
-  if (fe->menu.menu)
+  if (fe->menu.menu != NULL)
     fe->menu.draw (fe, cr);
   else if (fe->cursor_last_move == FALSE)
     draw_pointer (fe, cr);
@@ -121,40 +119,6 @@ draw_status_bar (frontend *fe, cairo_t *cr)
 }
 
 static void
-draw_main_menu (frontend *fe, cairo_t *cr)
-{
-  cairo_surface_t *surface;
-  int w, h;
-
-  ps3_menu_redraw (fe->menu.menu);
-  surface = ps3_menu_get_surface (fe->menu.menu);
-  w = cairo_image_surface_get_width (surface);
-  h = cairo_image_surface_get_height (surface);
-
-  cairo_set_source_surface (cr, surface, (fe->width - w) / 2,
-      (fe->height - h) / 2);
-  cairo_paint (cr);
-  cairo_surface_destroy (surface);
-}
-
-static void
-draw_types_menu (frontend *fe, cairo_t *cr)
-{
-  cairo_surface_t *surface;
-  int w, h;
-
-  ps3_menu_redraw (fe->menu.menu);
-  surface = ps3_menu_get_surface (fe->menu.menu);
-  w = cairo_image_surface_get_width (surface);
-  h = cairo_image_surface_get_height (surface);
-
-  cairo_set_source_surface (cr, surface, (fe->width - w) / 2,
-      (fe->height - h) / 2);
-  cairo_paint (cr);
-  cairo_surface_destroy (surface);
-}
-
-static void
 draw_puzzles_menu (frontend *fe, cairo_t *cr)
 {
   cairo_surface_t *surface;
@@ -221,6 +185,184 @@ free_sgt_menu (frontend *fe)
   if (fe->menu.frame)
     cairo_surface_destroy (fe->menu.frame);
   fe->menu.frame = NULL;
+}
+
+static void
+clip_round_edge (cairo_t *cr, int width, int height, int x, int y, int rad)
+{
+  cairo_new_path (cr);
+  cairo_arc (cr, x, y, rad, M_PI, -M_PI / 2);
+  cairo_arc (cr, width - x, y, rad, -M_PI / 2, 0);
+  cairo_arc (cr, width - x,  height - y, rad, 0, M_PI / 2);
+  cairo_arc (cr, x, height - y, rad, M_PI / 2, M_PI);
+  cairo_close_path (cr);
+  cairo_clip (cr);
+}
+
+
+static void
+create_standard_menu_frame (frontend *fe)
+{
+  cairo_font_extents_t fex;
+  cairo_text_extents_t tex;
+  cairo_pattern_t *linpat = NULL;
+  int width, height;
+  cairo_t *cr;
+  int x, y;
+
+  printf ("Creating %s frame\n", fe->menu.title);
+
+  width = 300 + 14 + 50;
+  height = (fe->menu.menu->nitems * (40 + 14 + 12));
+  if (height > (fe->height * 0.7))
+    height = fe->height * 0.7;
+  height += 100;
+  fe->menu.frame = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
+      300 + 14 + 50, height);
+  cr = cairo_create (fe->menu.frame);
+  clip_round_edge (cr, width, height, 32, 32, 32);
+  linpat = cairo_pattern_create_linear (width, 0, width, height);
+
+  cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.3, 0.3, 0.3);
+  cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.8, 0.8, 0.8);
+
+  cairo_set_source (cr, linpat);
+  cairo_paint (cr);
+  cairo_pattern_destroy (linpat);
+
+  linpat = cairo_pattern_create_linear (width, 0, width, height);
+
+  cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.03, 0.07, 0.10);
+  cairo_pattern_add_color_stop_rgb (linpat, 0.1, 0.04, 0.09, 0.16);
+  cairo_pattern_add_color_stop_rgb (linpat, 0.5, 0.05, 0.20, 0.35);
+  cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.06, 0.35, 0.55);
+
+  clip_round_edge (cr, width, height, 34, 34, 32);
+
+  cairo_set_source (cr, linpat);
+  cairo_paint (cr);
+
+  cairo_select_font_face(cr, "Arial",
+      CAIRO_FONT_SLANT_NORMAL,
+      CAIRO_FONT_WEIGHT_BOLD);
+
+  cairo_set_font_size(cr, 25);
+
+  cairo_font_extents (cr, &fex);
+  cairo_text_extents (cr, fe->menu.title, &tex);
+
+  y = 30 + (fex.ascent / 2);
+  x = ((300 + 14 + 50 - tex.width) / 2) - tex.x_bearing;
+  cairo_move_to(cr, x, y);
+  cairo_set_source_rgb (cr, 0.0, 0.3, 0.5);
+  cairo_show_text (cr, fe->menu.title);
+  cairo_destroy (cr);
+}
+
+static void
+draw_standard_menu (frontend *fe, cairo_t *cr)
+{
+  cairo_surface_t *surface;
+  int w, h;
+
+  if (fe->menu.frame == NULL) {
+    create_standard_menu_frame (fe);
+  }
+
+  w = cairo_image_surface_get_width (fe->menu.frame);
+  h = cairo_image_surface_get_height (fe->menu.frame);
+  surface = ps3_menu_get_surface (fe->menu.menu);
+
+  ps3_menu_redraw (fe->menu.menu);
+
+  cairo_set_source_surface (cr, fe->menu.frame, (fe->width - w) / 2,
+      (fe->height - h) / 2);
+  cairo_paint (cr);
+  cairo_set_source_surface (cr, surface, ((fe->width - w) / 2) + 25,
+      ((fe->height - h) / 2) + 60);
+  cairo_paint (cr);
+  cairo_surface_destroy (surface);
+}
+
+
+static cairo_surface_t *
+create_standard_background (float r, float g, float b) {
+  cairo_surface_t *bg;
+  cairo_surface_t *background;
+  cairo_t *cr;
+  int width, height;
+  cairo_pattern_t *linpat = NULL;
+
+  width = 300 - 10 + 14;
+  height = 40 + 14;
+  background = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32, width, height);
+
+  bg = ps3_menu_create_default_background (300 - 10, 40, r, g, b);
+
+  cr = cairo_create (background);
+  clip_round_edge (cr, width, height, 11, 11, 11);
+
+  linpat = cairo_pattern_create_linear (width, 0, width, height);
+
+  cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.3, 0.3, 0.3);
+  cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.7, 0.7, 0.7);
+
+  cairo_set_source (cr, linpat);
+  cairo_paint_with_alpha (cr, 0.5);
+
+  clip_round_edge (cr, width, height, 12, 12, 11);
+
+  cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
+  cairo_paint (cr);
+
+  cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
+  cairo_set_source_rgb (cr, 0, 0, 0);
+  cairo_paint_with_alpha (cr, 0.4);
+
+  cairo_set_source_surface (cr, bg, 7, 7);
+  cairo_paint (cr);
+  cairo_destroy (cr);
+  cairo_pattern_destroy (linpat);
+  cairo_surface_destroy (bg);
+
+  return background;
+}
+
+static void
+create_standard_menu (frontend *fe, const char *title)
+{
+  cairo_surface_t *surface;
+  cairo_surface_t *background, *selected_background, *disabled;
+  cairo_t *cr;
+
+  fe->menu.draw = draw_standard_menu;
+  fe->menu.title = title;
+
+  background = create_standard_background (0, 0, 0);
+  selected_background = create_standard_background (0.05, 0.30, 0.60);
+  disabled = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+      300 - 10 + 14, 40 + 14);
+
+  cr = cairo_create (disabled);
+
+  cairo_set_source_rgba (cr, 0.7, 0.7, 0.7, 0.7);
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+  clip_round_edge (cr, 300 - 10 + 14, 40 + 14, 14, 14, 7);
+  cairo_paint (cr);
+
+  cairo_destroy (cr);
+  cairo_surface_flush (disabled);
+
+  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
+      300 + 14, fe->height * 0.7);
+  /* Infinite vertical scrollable menu */
+  fe->menu.menu = ps3_menu_new_full (surface, -1, 1,
+      300 - 10 + 14, 40 + 14, 5, 6,
+      background, selected_background, disabled);
+  cairo_surface_destroy (surface);
+  cairo_surface_destroy (background);
+  cairo_surface_destroy (selected_background);
+  cairo_surface_destroy (disabled);
 }
 
 static void
@@ -294,16 +436,13 @@ main_menu_callback (frontend *fe, int accepted)
 
 void
 create_main_menu (frontend * fe) {
-  cairo_surface_t *surface;
   int i;
 
   fe->menu.callback = main_menu_callback;
-  fe->menu.draw = draw_main_menu;
-  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      306, fe->height * 0.7);
 
   /* Infinite vertical scrollable menu */
-  fe->menu.menu = ps3_menu_new (surface, -1, 1, 300, 40);
+  create_standard_menu (fe, "Main Menu");
+
   for (i = 0; main_menu_items[i].title; i++) {
     ps3_menu_add_item (fe->menu.menu, main_menu_items[i].title, 25);
 
@@ -337,16 +476,12 @@ types_menu_callback (frontend *fe, int accepted)
 
 void
 create_types_menu (frontend * fe){
-  cairo_surface_t *surface;
   int n;
   int i;
 
   fe->menu.callback = types_menu_callback;
-  fe->menu.draw = draw_types_menu;
-  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      306, fe->height * 0.7);
 
-  fe->menu.menu = ps3_menu_new (surface, -1, 1, 300, 40);
+  create_standard_menu (fe, "Presets Menu");
   n = midend_num_presets(fe->me);
 
   if(n <= 0){ /* No types */
@@ -357,7 +492,7 @@ create_types_menu (frontend * fe){
       char* name;
       game_params *params;
       midend_fetch_preset(fe->me, i, &name, &params);
-      ps3_menu_add_item (fe->menu.menu, name, 25);
+      ps3_menu_add_item (fe->menu.menu, name, 20);
     }
   }
 }
