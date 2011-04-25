@@ -67,6 +67,13 @@ struct blitter {
   int w, h, x, y;
 };
 
+enum SaveDataMode {
+  PS3_SAVE_MODE_ICON,
+  PS3_SAVE_MODE_SCREENSHOT,
+  PS3_SAVE_MODE_DATA,
+  PS3_SAVE_MODE_DONE,
+};
+
 typedef struct {
   sys_ppu_thread_t save_tid;
   int saving;
@@ -74,6 +81,15 @@ typedef struct {
   char prefix[SYS_SAVE_MAX_DIRECTORY_NAME];
   sysSaveNewSaveGame new_save;
   sysSaveNewSaveGameIcon new_save_icon;
+  enum SaveDataMode mode;
+  u8 *icon_data;
+  u64 icon_size;
+  u8 *screenshot_data;
+  u64 screenshot_size;
+  u8 *save_data;
+  u64 save_size;
+  u32 deserialize_offset;
+  s32 result;
 } SaveData;
 
 struct frontend {

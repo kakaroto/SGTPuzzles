@@ -828,6 +828,13 @@ main (int argc, char *argv[])
     }
     if ((fe->save_data.saving || fe->save_data.loading) &&
         fe->save_data.save_tid == 0) {
+      /* We successfully loaded a new game, need to recaulculate size and force
+         a redraw because the game params might have changed */
+      if (fe->save_data.loading && fe->save_data.result == 0) {
+        calculate_puzzle_size (fe);
+
+        midend_force_redraw(fe->me);
+      }
       fe->save_data.saving = fe->save_data.loading = FALSE;
       fe->redraw = TRUE;
     }

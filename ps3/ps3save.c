@@ -14,15 +14,25 @@
 #include <sys/memory.h>
 #include <sysutil/save.h>
 #include <string.h>
+#include <stdio.h>
 #include <ctype.h>
 
 #define THREAD_STACK_SIZE 16*1024
 #define THREAD_PRIORITY 1000
+
+/* Allow 100 save games */
 #define SAVE_LIST_MAX_DIRECTORIES 100
-#define SAVE_LIST_MAX_FILES 5
+/* Max 3 files : icon, screenshot, save data */
+#define SAVE_LIST_MAX_FILES 3
+
 #define BUFFER_SETTINGS_BUFSIZE (SAVE_LIST_MAX_DIRECTORIES * \
       sizeof(sysSaveDirectoryList))
-#define MEMORY_CONTAINER_SIZE 5*1024*1024
+#define MEMORY_CONTAINER_SIZE (5*1024*1024)
+
+#define SAVE_DATA_FILENAME "GAME"
+
+
+static int read_game_data_from_buffer (void *ctx, void *buf, int len);
 
 void
 saveload_game_list_cb (sysSaveCallbackResult *result,
@@ -47,6 +57,7 @@ saveload_game_list_cb (sysSaveCallbackResult *result,
 
   if (fe->save_data.saving && out->numDirectories < SAVE_LIST_MAX_DIRECTORIES) {
     sysSaveNewSaveGame *new_save = &fe->save_data.new_save;
+    sysSaveNewSaveGameIcon *new_save_icon = &fe->save_data.new_save_icon;
     char *dir = malloc (SYS_SAVE_MAX_DIRECTORY_NAME + 1);
     int idx = -1;
     int j;
@@ -67,10 +78,17 @@ saveload_game_list_cb (sysSaveCallbackResult *result,
     if (idx != -1) {
       printf ("New directory : %s\n", dir);
       memset (new_save, 0, sizeof(sysSaveNewSaveGame));
+      memset (new_save_icon, 0, sizeof(sysSaveNewSaveGameIcon));
       new_save->position = SYS_SAVE_NEW_SAVE_POSITION_TOP;
       new_save->directoryName = PTR (dir);
-      /* TODO: Show icon depending on the puzzle */
+      if (fe->save_data.screenshot_size > 0) {
+        new_save->icon = PTR (new_save_icon);
+        new_save_icon->iconBufferSize = fe->save_data.icon_size;
+        new_save_icon->iconBuffer = PTR (fe->save_data.icon_data);
+      }
       out->newSaveGame = PTR (new_save);
+    } else {
+      free (dir);
     }
   }
 
@@ -125,12 +143,45 @@ saveload_game_status_cb (sysSaveCallbackResult *result,
         SYS_SAVE_FILE_STATUS_PTR (in->fileList)[i].fileSize,
         SYS_SAVE_FILE_STATUS_PTR (in->fileList)[i].filename);
 
-  /* TODO: Check for availability of free space */
-
-  out->recreateMode = SYS_SAVE_RECREATE_MODE_DELETE;
+  result->result = SYS_SAVE_CALLBACK_RESULT_CONTINUE;
   out->setParam = PTR (&in->getParam);
 
-  if (fe->save_data.saving) {
+  if (fe->save_data.loading) {
+    out->recreateMode = SYS_SAVE_RECREATE_MODE_OVERWRITE_NOT_CORRUPTED;
+    fe->save_data.mode = PS3_SAVE_MODE_DATA;
+    fe->save_data.save_size = 0;
+    for (i = 0; i < in->numFiles; i++) {
+      switch (SYS_SAVE_FILE_STATUS_PTR (in->fileList)[i].fileType) {
+        case SYS_SAVE_FILETYPE_STANDARD_FILE:
+          fe->save_data.save_size =
+              SYS_SAVE_FILE_STATUS_PTR (in->fileList)[i].fileSize;
+          break;
+        case SYS_SAVE_FILETYPE_CONTENT_ICON0:
+          fe->save_data.icon_size =
+              SYS_SAVE_FILE_STATUS_PTR (in->fileList)[i].fileSize;
+          break;
+        case SYS_SAVE_FILETYPE_CONTENT_PIC1:
+          fe->save_data.screenshot_size =
+              SYS_SAVE_FILE_STATUS_PTR (in->fileList)[i].fileSize;
+          break;
+        default:
+          break;
+      }
+    }
+    if (fe->save_data.save_size == 0) {
+      printf ("Couldn't find the save data.. !\n");
+      result->result = SYS_SAVE_CALLBACK_RESULT_CORRUPTED;
+      return;
+    } else {
+      printf ("Found save game data of size : %lu\n", fe->save_data.save_size);
+      fe->save_data.save_data = malloc (fe->save_data.save_size);
+    }
+  } else {
+    out->recreateMode = SYS_SAVE_RECREATE_MODE_DELETE;
+    fe->save_data.mode = PS3_SAVE_MODE_ICON;
+
+    /* TODO: Check for availability of free space */
+
     strncpy (in->getParam.title, "SGT Puzzles", SYS_SAVE_MAX_TITLE);
     strncpy (in->getParam.subtitle, fe->thegame->name, SYS_SAVE_MAX_SUBTITLE);
 
@@ -148,15 +199,157 @@ saveload_game_status_cb (sysSaveCallbackResult *result,
     }
   }
 
-  result->result = SYS_SAVE_CALLBACK_RESULT_CONTINUE;
 }
 
 void
 saveload_game_file_cb (sysSaveCallbackResult *result,
     sysSaveFileIn *in, sysSaveFileOut *out)
 {
+  frontend *fe = (frontend *) ((u64) result->user_data);
+
   printf ("saveload_game_file_cb called\n");
-  result->result = SYS_SAVE_CALLBACK_RESULT_DONE;
+
+  printf ("Last option %s %d bytes\n", fe->save_data.saving? "wrote" : "read",
+      in->previousOperationResultSize);
+
+  memset (out, 0, sizeof(sysSaveFileOut));
+  switch (fe->save_data.mode) {
+    case PS3_SAVE_MODE_ICON:
+      {
+        printf ("Saving icon\n");
+
+        /* The screenshot doesn't appear in the load screen, so we need to save
+           it as the icon too... */
+        out->fileOperation = SYS_SAVE_FILE_OPERATION_WRITE;
+        out->fileType = SYS_SAVE_FILETYPE_CONTENT_ICON0;
+        out->size = fe->save_data.screenshot_size;
+        out->bufferSize = fe->save_data.screenshot_size;
+        out->buffer = PTR (fe->save_data.screenshot_data);
+
+        result->result = SYS_SAVE_CALLBACK_RESULT_CONTINUE;
+        result->incrementProgress = 30;
+        fe->save_data.mode = PS3_SAVE_MODE_SCREENSHOT;
+        break;
+      }
+    case PS3_SAVE_MODE_SCREENSHOT:
+      {
+        printf ("Saving screenshot\n");
+
+        out->fileOperation = SYS_SAVE_FILE_OPERATION_WRITE;
+        out->fileType = SYS_SAVE_FILETYPE_CONTENT_PIC1;
+        out->size = fe->save_data.screenshot_size;
+        out->bufferSize = fe->save_data.screenshot_size;
+        out->buffer = PTR (fe->save_data.screenshot_data);
+
+        result->result = SYS_SAVE_CALLBACK_RESULT_CONTINUE;
+        result->incrementProgress = 30;
+        fe->save_data.mode = PS3_SAVE_MODE_DATA;
+        break;
+      }
+    case PS3_SAVE_MODE_DATA:
+      {
+        if (fe->save_data.saving) {
+          printf ("Writing game data\n");
+          out->fileOperation = SYS_SAVE_FILE_OPERATION_WRITE;
+        } else {
+          printf ("Reading game data\n");
+          out->fileOperation = SYS_SAVE_FILE_OPERATION_READ;
+        }
+
+        out->filename = PTR (SAVE_DATA_FILENAME);
+        out->fileType = SYS_SAVE_FILETYPE_STANDARD_FILE;
+        out->size = fe->save_data.save_size;
+        out->bufferSize = fe->save_data.save_size;
+        out->buffer = PTR (fe->save_data.save_data);
+
+        result->result = SYS_SAVE_CALLBACK_RESULT_CONTINUE;
+        result->incrementProgress = 100;
+        fe->save_data.mode = PS3_SAVE_MODE_DONE;
+        break;
+      }
+    case PS3_SAVE_MODE_DONE:
+    default:
+      result->result = SYS_SAVE_CALLBACK_RESULT_DONE;
+      if (fe->save_data.loading) {
+        if (in->previousOperationResultSize != fe->save_data.save_size) {
+          result->result = SYS_SAVE_CALLBACK_RESULT_CORRUPTED;
+        } else {
+          char *error = NULL;
+
+          error = midend_deserialise(fe->me, read_game_data_from_buffer, fe);
+          if (error != NULL) {
+            result->result = SYS_SAVE_CALLBACK_RESULT_ERROR_CUSTOM;
+            result->customErrorMessage = PTR (error);
+          }
+        }
+      }
+      break;
+  }
+
+  printf ("saveload_game_file_cb exit\n");
+}
+
+static int
+load_file (const char *filename, u8 **data, u64 *size)
+{
+  FILE *fd = fopen (filename, "rb");
+
+  if (fd == NULL)
+    return FALSE;
+
+  fseek (fd, 0, SEEK_END);
+  *size = ftell (fd);
+  fseek (fd, 0, SEEK_SET);
+
+  *data = malloc (*size);
+  fread (*data, *size, 1, fd);
+  fclose (fd);
+
+  return TRUE;
+}
+
+static cairo_status_t
+write_png_to_buffer (void *closure, unsigned char *data, unsigned int length)
+{
+  frontend *fe = closure;
+
+  printf ("Serializing screenshot of size : %d\n", length);
+  fe->save_data.screenshot_data = realloc (fe->save_data.screenshot_data,
+      fe->save_data.screenshot_size + length);
+  memcpy (fe->save_data.screenshot_data + fe->save_data.screenshot_size,
+      data, length);
+  fe->save_data.screenshot_size += length;
+
+  return CAIRO_STATUS_SUCCESS;
+}
+
+static void
+write_game_data_to_buffer (void *ctx, void *buf, int len)
+{
+  frontend *fe = ctx;
+
+  printf ("Serializing data of size : %d\n", len);
+  fe->save_data.save_data = realloc (fe->save_data.save_data,
+      fe->save_data.save_size + len);
+  memcpy (fe->save_data.save_data + fe->save_data.save_size, buf, len);
+  fe->save_data.save_size += len;
+
+}
+
+static int
+read_game_data_from_buffer (void *ctx, void *buf, int len)
+{
+  frontend *fe = ctx;
+
+  printf ("Deserializing data of size : %d\n", len);
+
+  if (fe->save_data.deserialize_offset + len > fe->save_data.save_size)
+    return FALSE;
+
+  memcpy (buf, fe->save_data.save_data + fe->save_data.deserialize_offset, len);
+  fe->save_data.deserialize_offset += len;
+
+  return TRUE;
 }
 
 void
@@ -168,6 +361,7 @@ saveload_game_thread(void *user_data)
   mem_container_t container;
   char *prefix = fe->save_data.prefix;
   char *ptr = prefix;
+  char filename[256];
   s32 ret;
 
   printf ("saveload_thread started\n");
@@ -196,24 +390,46 @@ saveload_game_thread(void *user_data)
     goto end;
   }
 
-  if (fe->save_data.saving)
+  if (fe->save_data.saving) {
+    printf ("Load icon\n");
+    snprintf (filename, 255, "%s/data/puzzles/%s.png", cwd,
+        gamelist_names[fe->game_idx]);
+    load_file (filename, &fe->save_data.icon_data, &fe->save_data.icon_size);
+
+    printf ("Taking screenshot\n");
+    cairo_surface_write_to_png_stream (fe->image,
+        (cairo_write_func_t) write_png_to_buffer, fe);
+
+    printf ("Serializing data\n");
+    midend_serialise(fe->me, write_game_data_to_buffer, fe);
+
     ret = sysSaveListSave2 (SYS_SAVE_CURRENT_VERSION,
         &listSettings, &bufferSettings,
         saveload_game_list_cb, saveload_game_status_cb, saveload_game_file_cb,
         container, fe);
-  else
+  } else {
     ret = sysSaveListLoad2 (SYS_SAVE_CURRENT_VERSION,
         &listSettings, &bufferSettings,
         saveload_game_list_cb, saveload_game_status_cb, saveload_game_file_cb,
         container, fe);
+  }
 
-  /* TODO: check ret */
+  fe->save_data.result = ret;
+
   printf ("sysSaveListLoad2/Save2 returned : %d\n", ret);
   sysMemContainerDestroy (container);
 
 end:
   if (bufferSettings.buffer)
     free (VOID_PTR (bufferSettings.buffer));
+  if (fe->save_data.new_save.directoryName)
+    free (VOID_PTR (fe->save_data.new_save.directoryName));
+  if (fe->save_data.save_data)
+    free (fe->save_data.save_data);
+  if (fe->save_data.icon_data)
+    free (fe->save_data.icon_data);
+  if (fe->save_data.screenshot_data)
+    free (fe->save_data.screenshot_data);
 
   printf ("saveload_thread exiting\n");
   fe->save_data.save_tid = 0;
@@ -230,6 +446,7 @@ _create_thread (frontend *fe, int saving, char *thread_name)
     return FALSE;
   }
 
+  memset (&fe->save_data, 0, sizeof(SaveData));
   fe->save_data.saving = saving;
   fe->save_data.loading = !saving;
   ret = sysThreadCreate (&fe->save_data.save_tid, saveload_game_thread, fe,
