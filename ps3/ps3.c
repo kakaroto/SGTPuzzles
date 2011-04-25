@@ -29,6 +29,7 @@
 #include "ps3.h"
 #include "ps3save.h"
 #include "ps3drawingapi.h"
+#include "ps3graphics.h"
 
 #define SHOW_FPS FALSE
 #define STATUS_BAR_SHOW_FPS FALSE

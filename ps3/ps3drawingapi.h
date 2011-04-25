@@ -30,7 +30,6 @@ void ps3_unclip (void *handle);
 void ps3_status_bar (void *handle, char *text);
 void ps3_start_draw (void *handle);
 void ps3_end_draw (void *handle);
-void ps3_refresh_draw (frontend *fe);
 
 blitter *ps3_blitter_new (void *handle, int w, int h);
 void ps3_blitter_free (void *handle, blitter * bl);
