@@ -86,13 +86,18 @@ typedef struct {
 } SaveData;
 
 
-
 typedef struct {
   int drawing;
   int opened;
   int closed;
   int exit;
 } XMBEvent;
+
+typedef struct {
+  Ps3Menu *menu;
+  void (*callback) (frontend *fe, int accepted);
+  void (*draw) (frontend *fe, cairo_t *cr);
+} SGTPuzzlesMenu;
 
 struct frontend {
   /* RSX device context */
@@ -125,9 +130,7 @@ struct frontend {
   int status_y;
   struct timeval timer_last_ts;
   int timer_enabled;
-  Ps3Menu *menu;
-  void (*menu_callback) (frontend *fe, int accepted);
-  void (*draw_menu_callback) (frontend *fe, cairo_t *cr);
+  SGTPuzzlesMenu menu;
   SaveData save_data;
   XMBEvent xmb;
 };

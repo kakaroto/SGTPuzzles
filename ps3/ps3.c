@@ -257,31 +257,31 @@ handle_pad (frontend *fe, padData *paddata)
   /* Store previous key to avoid flooding the same keypress */
   prev_keyval = keyval;
 
-  if (fe->menu != NULL) {
+  if (fe->menu.menu != NULL) {
     if (paddata->BTN_START || paddata->BTN_CIRCLE) {
       DEBUG ("Cancelling menu\n");
-      fe->menu_callback (fe, FALSE);
+      fe->menu.callback (fe, FALSE);
       fe->redraw = TRUE;
       return TRUE;
     } else if (paddata->BTN_CROSS) {
       DEBUG ("Accepting menu\n");
-      fe->menu_callback (fe, TRUE);
+      fe->menu.callback (fe, TRUE);
       fe->redraw = TRUE;
       return TRUE;
     } else if (keyval == CURSOR_UP) {
-      ps3_menu_handle_input (fe->menu, PS3_MENU_INPUT_UP, &bbox);
+      ps3_menu_handle_input (fe->menu.menu, PS3_MENU_INPUT_UP, &bbox);
       fe->redraw = TRUE;
       return TRUE;
     } else if (keyval == CURSOR_DOWN) {
-      ps3_menu_handle_input (fe->menu, PS3_MENU_INPUT_DOWN, &bbox);
+      ps3_menu_handle_input (fe->menu.menu, PS3_MENU_INPUT_DOWN, &bbox);
       fe->redraw = TRUE;
       return TRUE;
     } else if (keyval == CURSOR_LEFT) {
-      ps3_menu_handle_input (fe->menu, PS3_MENU_INPUT_LEFT, &bbox);
+      ps3_menu_handle_input (fe->menu.menu, PS3_MENU_INPUT_LEFT, &bbox);
       fe->redraw = TRUE;
       return TRUE;
     } else if (keyval == CURSOR_RIGHT) {
-      ps3_menu_handle_input (fe->menu, PS3_MENU_INPUT_RIGHT, &bbox);
+      ps3_menu_handle_input (fe->menu.menu, PS3_MENU_INPUT_RIGHT, &bbox);
       fe->redraw = TRUE;
       return TRUE;
     }
@@ -428,7 +428,7 @@ new_window ()
   fe->status_bar = NULL;
   fe->timer_enabled = FALSE;
   fe->background = NULL;
-  fe->menu = NULL;
+  fe->menu.menu = NULL;
   fe->me = NULL;
 
   /* Allocate a 1Mb buffer, alligned to a 1Mb boundary
