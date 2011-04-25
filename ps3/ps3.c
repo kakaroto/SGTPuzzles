@@ -331,18 +331,18 @@ calculate_puzzle_size (frontend *fe)
 
   DEBUG ("Puzzle is %dx%d at %d-%d\n", w, h, fe->x, fe->y);
 
+  if (fe->status_bar) {
+    cairo_surface_finish (fe->status_bar);
+    cairo_surface_destroy (fe->status_bar);
+    fe->status_bar = NULL;
+  }
+
   if (have_status) {
     cairo_t *cr;
     float rgb[3];
 
     fe->status_x = width * 0.05;
     fe->status_y = height + STATUS_BAR_PAD;
-
-    if (fe->status_bar) {
-      cairo_surface_finish (fe->status_bar);
-      cairo_surface_destroy (fe->status_bar);
-      fe->status_bar = NULL;
-    }
 
     fe->status_bar = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
         fe->width * 0.9, STATUS_BAR_HEIGHT);
