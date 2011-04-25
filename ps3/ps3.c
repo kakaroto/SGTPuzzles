@@ -422,14 +422,7 @@ new_window ()
   DEBUG ("Creating new window\n");
 
   fe = snew (frontend);
-  fe->currentBuffer = 0;
-  fe->cr = NULL;
-  fe->image = NULL;
-  fe->status_bar = NULL;
-  fe->timer_enabled = FALSE;
-  fe->background = NULL;
-  fe->menu.menu = NULL;
-  fe->me = NULL;
+  memset (fe, 0, sizeof(frontend));
 
   /* Allocate a 1Mb buffer, alligned to a 1Mb boundary
    * to be our shared IO memory with the RSX. */
