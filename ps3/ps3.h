@@ -120,5 +120,6 @@ typedef struct {
 } PuzzleDescription;
 
 extern const PuzzleDescription puzzle_descriptions[];
+extern char cwd[];
 
 #endif /* __PS3_H__ */

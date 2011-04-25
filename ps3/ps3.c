@@ -34,7 +34,7 @@
 #define STATUS_BAR_SHOW_FPS FALSE
 // #define TEST_GRID
 
-static char cwd[1024];
+char cwd[1024];
 
 const PuzzleDescription puzzle_descriptions[] = {
   {"blackbox",
@@ -287,8 +287,8 @@ create_puzzle_menu (frontend * fe) {
   int width, height;
   int i ;
 
-  width = fe->width * 0.9;
-  height = (fe->height - PUZZLE_MENU_DESCRIPTION_HEIGHT) * 0.9;
+  width = fe->width * 0.8;
+  height = (fe->height - PUZZLE_MENU_DESCRIPTION_HEIGHT) * 0.8;
   fe->mode = MODE_PUZZLE_MENU;
   surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32, width, height);
 
