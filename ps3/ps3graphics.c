@@ -15,7 +15,7 @@ static void draw_puzzle (frontend *fe, cairo_t *cr);
 static void draw_pointer (frontend *fe, cairo_t *cr);
 static void draw_status_bar (frontend *fe, cairo_t *cr);
 static void draw_main_menu (frontend *fe, cairo_t *cr);
-static void draw_puzzle_menu (frontend *fe, cairo_t *cr);
+static void draw_puzzles_menu (frontend *fe, cairo_t *cr);
 static void draw_types_menu (frontend *fe, cairo_t *cr);
 
 void
@@ -34,19 +34,17 @@ ps3_redraw_screen (frontend *fe)
       CAIRO_FORMAT_ARGB32, buffer->width, buffer->height, buffer->width * 4);
 
   cr = cairo_create (surface);
+
   draw_background (fe, cr);
-  if (fe->mode != MODE_PUZZLE_MENU) {
+  if (fe->image != NULL) {
     draw_puzzle (fe, cr);
     draw_status_bar (fe, cr);
-    if (fe->mode == MODE_TYPES_MENU)
-      draw_types_menu (fe, cr);
-    else if (fe->mode == MODE_MAIN_MENU)
-      draw_main_menu (fe, cr);
-    else if (fe->cursor_last_move == FALSE)
-      draw_pointer (fe, cr);
-  } else {
-    draw_puzzle_menu (fe, cr);
   }
+  if (fe->menu)
+    fe->draw_menu_callback (fe, cr);
+  else if (fe->cursor_last_move == FALSE)
+    draw_pointer (fe, cr);
+
   cairo_destroy (cr);
 
   cairo_surface_finish (surface);
@@ -157,7 +155,7 @@ draw_types_menu (frontend *fe, cairo_t *cr)
 }
 
 static void
-draw_puzzle_menu (frontend *fe, cairo_t *cr)
+draw_puzzles_menu (frontend *fe, cairo_t *cr)
 {
   cairo_surface_t *surface;
   cairo_font_extents_t fex;
@@ -252,12 +250,15 @@ static void
 _change_game (frontend *fe)
 {
   destroy_midend (fe);
-  create_puzzle_menu (fe);
+  create_puzzles_menu (fe);
   fe->redraw = TRUE;
 }
 
 
-const MainMenuItems main_menu_items[] = {
+const struct {
+  const char *title;
+  void (*callback) (frontend *fe);
+} main_menu_items[] = {
   {"New Game", _new_game},
   {"Restart Game", _restart_game},
   {"Save Game", _save_game},
@@ -267,12 +268,26 @@ const MainMenuItems main_menu_items[] = {
   {NULL, NULL},
 };
 
+static void
+main_menu_callback (frontend *fe, int accepted)
+{
+  int selected_item = fe->menu->selection;
+
+  /* Destroy the menu first since the callback could create a new menu */
+  ps3_menu_free (fe->menu);
+  fe->menu = NULL;
+
+  if (accepted)
+    main_menu_items[selected_item].callback (fe);
+}
+
 void
 create_main_menu (frontend * fe) {
   cairo_surface_t *surface;
   int i;
 
-  fe->mode = MODE_MAIN_MENU;
+  fe->menu_callback = main_menu_callback;
+  fe->draw_menu_callback = draw_main_menu;
   surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
       306, fe->height * 0.7);
 
@@ -286,13 +301,38 @@ create_main_menu (frontend * fe) {
   }
 }
 
+static void
+types_menu_callback (frontend *fe, int accepted)
+{
+  int selected_item = fe->menu->selection;
+
+  ps3_menu_free (fe->menu);
+  fe->menu = NULL;
+
+  if (accepted) {
+    /* Type selected */
+    game_params *params;
+    char* name;
+
+    midend_fetch_preset(fe->me, selected_item, &name, &params);
+    midend_set_params (fe->me,params);
+    midend_new_game(fe->me);
+
+    calculate_puzzle_size (fe);
+
+    midend_force_redraw(fe->me);
+  }
+}
+
+
 void
 create_types_menu (frontend * fe){
   cairo_surface_t *surface;
   int n;
   int i;
 
-  fe->mode = MODE_TYPES_MENU;
+  fe->menu_callback = types_menu_callback;
+  fe->draw_menu_callback = draw_types_menu;
   surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
       306, fe->height * 0.7);
 
@@ -300,7 +340,6 @@ create_types_menu (frontend * fe){
   n = midend_num_presets(fe->me);
 
   if(n <= 0){ /* No types */
-    fe->mode = MODE_PUZZLE;
     ps3_menu_free (fe->menu);
     fe->menu = NULL;
     return;
@@ -314,15 +353,32 @@ create_types_menu (frontend * fe){
   }
 }
 
+static void
+puzzles_menu_callback (frontend *fe, int accepted)
+{
+  int selected_item = fe->menu->selection;
+
+  /* Don't allow cancelling the puzzles menu */
+  if (accepted == FALSE)
+    return;
+
+  /* Game selected */
+  ps3_menu_free (fe->menu);
+  fe->menu = NULL;
+
+  create_midend (fe, selected_item);
+}
+
 void
-create_puzzle_menu (frontend * fe) {
+create_puzzles_menu (frontend * fe) {
   cairo_surface_t *surface;
   int width, height;
   int i ;
 
+  fe->menu_callback = puzzles_menu_callback;
+  fe->draw_menu_callback = draw_puzzles_menu;
   width = fe->width * 0.9;
   height = (fe->height * 0.9) - PUZZLE_MENU_DESCRIPTION_HEIGHT;
-  fe->mode = MODE_PUZZLE_MENU;
   surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32, width, height);
 
   /* Infinite vertical scrollable menu */

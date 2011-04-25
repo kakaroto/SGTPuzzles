@@ -55,13 +55,6 @@
 #define DEBUG(...) {}
 #endif
 
-typedef enum {
-  MODE_PUZZLE,
-  MODE_PUZZLE_MENU,
-  MODE_MAIN_MENU,
-  MODE_TYPES_MENU,
-} GameMode;
-
 struct blitter {
   cairo_surface_t *image;
   int w, h, x, y;
@@ -126,15 +119,15 @@ struct frontend {
   int cursor_last_move;
   int last_cursor_pressed;
   int current_button_pressed;
-  struct timeval cursor_last_ts;
   int width;
   int height;
   int status_x;
   int status_y;
   struct timeval timer_last_ts;
   int timer_enabled;
-  GameMode mode;
   Ps3Menu *menu;
+  void (*menu_callback) (frontend *fe, int accepted);
+  void (*draw_menu_callback) (frontend *fe, cairo_t *cr);
   SaveData save_data;
   XMBEvent xmb;
 };
@@ -147,13 +140,6 @@ typedef struct {
 
 extern const PuzzleDescription puzzle_descriptions[];
 extern char cwd[];
-
-typedef struct {
-  const char *title;
-  void (*callback) (frontend *fe);
-} MainMenuItems;
-
-extern const MainMenuItems main_menu_items[];
 
 void destroy_midend (frontend * fe);
 void create_midend (frontend* fe, int game_idx);

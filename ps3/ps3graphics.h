@@ -13,7 +13,7 @@
 #include "ps3.h"
 
 void ps3_redraw_screen (frontend *fe);
-void create_puzzle_menu (frontend * fe);
+void create_puzzles_menu (frontend * fe);
 void create_main_menu (frontend * fe);
 void create_types_menu (frontend * fe);
 

@@ -157,6 +157,7 @@ static int
 handle_pad (frontend *fe, padData *paddata)
 {
   static int prev_keyval = -1;
+  static struct timeval cursor_last_ts;
   int keyval = -1;
   Ps3MenuRectangle bbox;
   struct timeval now;
@@ -181,16 +182,16 @@ handle_pad (frontend *fe, padData *paddata)
     fe->cursor_last_move = TRUE;
 
     if (fe->last_cursor_pressed == -1)
-      gettimeofday (&fe->cursor_last_ts, NULL);
+      gettimeofday (&cursor_last_ts, NULL);
 
     if (fe->last_cursor_pressed == keyval) {
       double elapsed;
 
       gettimeofday (&now, NULL);
-      elapsed = ((now.tv_usec - fe->cursor_last_ts.tv_usec) * 0.000001 +
-          (now.tv_sec - fe->cursor_last_ts.tv_sec));
+      elapsed = ((now.tv_usec - cursor_last_ts.tv_usec) * 0.000001 +
+          (now.tv_sec - cursor_last_ts.tv_sec));
       if (elapsed > 0.25)
-        fe->cursor_last_ts = now;
+        cursor_last_ts = now;
       else
         keyval = -1;
     } else {
@@ -256,68 +257,17 @@ handle_pad (frontend *fe, padData *paddata)
   /* Store previous key to avoid flooding the same keypress */
   prev_keyval = keyval;
 
-  if (fe->mode == MODE_PUZZLE) {
-    if (paddata->BTN_SELECT) {
-      create_types_menu (fe);
-      fe->redraw = TRUE;
-      return TRUE;
-    }
-    if (paddata->BTN_START) {
-      /* TODO: need to create the menu */
-      create_main_menu (fe);
-      fe->mode = MODE_MAIN_MENU;
-      fe->redraw = TRUE;
-      return TRUE;
-    }
-
-    /* TODO: allow long key presses */
-    if (keyval >= 0 &&
-        !midend_process_key (fe->me, fe->pointer_x, fe->pointer_y, keyval))
-      return FALSE;
-
-  } else {
+  if (fe->menu != NULL) {
     if (paddata->BTN_START || paddata->BTN_CIRCLE) {
-      if(fe->mode == MODE_MAIN_MENU || fe->mode == MODE_TYPES_MENU) {
-        fe->mode = MODE_PUZZLE;
-        DEBUG ("Leaving menu mode\n");
-        if (fe->menu != NULL)
-          ps3_menu_free (fe->menu);
-        fe->menu = NULL;
-        fe->redraw = TRUE;
-        return TRUE;
-      }
+      DEBUG ("Cancelling menu\n");
+      fe->menu_callback (fe, FALSE);
+      fe->redraw = TRUE;
+      return TRUE;
     } else if (paddata->BTN_CROSS) {
-      int selected_item = fe->menu->selection;
-      if(fe->mode == MODE_PUZZLE_MENU) {
-        /* Game selected */
-        fe->mode = MODE_PUZZLE;
-        ps3_menu_free (fe->menu);
-        fe->menu = NULL;
-
-        create_midend (fe, selected_item);
-
-      } else if (fe->mode == MODE_TYPES_MENU) {
-        /* Type selected */
-        game_params *params;
-        char* name;
-
-        fe->mode = MODE_PUZZLE;
-        ps3_menu_free (fe->menu);
-        fe->menu = NULL;
-
-        midend_fetch_preset(fe->me, selected_item, &name, &params);
-        midend_set_params (fe->me,params);
-        midend_new_game(fe->me);
-
-        calculate_puzzle_size (fe);
-
-        midend_force_redraw(fe->me);
-      } else if (fe->mode == MODE_MAIN_MENU) {
-        fe->mode = MODE_PUZZLE;
-        ps3_menu_free (fe->menu);
-        fe->menu = NULL;
-        main_menu_items[selected_item].callback (fe);
-      }
+      DEBUG ("Accepting menu\n");
+      fe->menu_callback (fe, TRUE);
+      fe->redraw = TRUE;
+      return TRUE;
     } else if (keyval == CURSOR_UP) {
       ps3_menu_handle_input (fe->menu, PS3_MENU_INPUT_UP, &bbox);
       fe->redraw = TRUE;
@@ -335,6 +285,22 @@ handle_pad (frontend *fe, padData *paddata)
       fe->redraw = TRUE;
       return TRUE;
     }
+  } else {
+    if (paddata->BTN_SELECT) {
+      create_types_menu (fe);
+      fe->redraw = TRUE;
+      return TRUE;
+    }
+    if (paddata->BTN_START) {
+      create_main_menu (fe);
+      fe->redraw = TRUE;
+      return TRUE;
+    }
+
+    if (keyval >= 0 &&
+        !midend_process_key (fe->me, fe->pointer_x, fe->pointer_y, keyval))
+      return FALSE;
+
   }
 
   return TRUE;
@@ -420,7 +386,6 @@ create_midend (frontend* fe, int game_idx)
 
   calculate_puzzle_size (fe);
 
-  fe->mode = MODE_PUZZLE;
   memset (&fe->save_data, 0, sizeof(SaveData));
 
   midend_force_redraw(fe->me);
@@ -480,7 +445,7 @@ new_window ()
   fe->width = width;
   fe->height = height;
 
-  create_puzzle_menu (fe);
+  create_puzzles_menu (fe);
 
   fe->redraw = TRUE;
 
