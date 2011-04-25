@@ -784,8 +784,6 @@ main (int argc, char *argv[])
   /* Main loop */
   while (xmb.exit == 0)
   {
-    fe->redraw = 0;
-
     ioPadGetInfo (&padinfo);
     for (i = 0; i < MAX_PADS; i++) {
       if (padinfo.status[i]) {
@@ -860,6 +858,7 @@ main (int argc, char *argv[])
 
     if (fe->redraw)
       ps3_refresh_draw (fe);
+    fe->redraw = FALSE;
 
     frame++;
     /* We need to poll for events */
