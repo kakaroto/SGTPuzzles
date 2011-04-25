@@ -16,5 +16,6 @@ void ps3_redraw_screen (frontend *fe);
 void create_puzzles_menu (frontend * fe);
 void create_main_menu (frontend * fe);
 void create_types_menu (frontend * fe);
+void free_sgt_menu (frontend *fe);
 
 #endif /* __PS3_GRAPHICS_H__ */

@@ -209,7 +209,19 @@ draw_puzzles_menu (frontend *fe, cairo_t *cr)
   cairo_restore(cr);
 }
 
-
+void
+free_sgt_menu (frontend *fe)
+{
+  if (fe->menu.menu)
+    ps3_menu_free (fe->menu.menu);
+  fe->menu.menu = NULL;
+  fe->menu.callback = NULL;
+  fe->menu.draw = NULL;
+  fe->menu.title = NULL;
+  if (fe->menu.frame)
+    cairo_surface_destroy (fe->menu.frame);
+  fe->menu.frame = NULL;
+}
 
 static void
 _new_game (frontend *fe)
@@ -274,8 +286,7 @@ main_menu_callback (frontend *fe, int accepted)
   int selected_item = fe->menu.menu->selection;
 
   /* Destroy the menu first since the callback could create a new menu */
-  ps3_menu_free (fe->menu.menu);
-  fe->menu.menu = NULL;
+  free_sgt_menu (fe);
 
   if (accepted)
     main_menu_items[selected_item].callback (fe);
@@ -306,8 +317,7 @@ types_menu_callback (frontend *fe, int accepted)
 {
   int selected_item = fe->menu.menu->selection;
 
-  ps3_menu_free (fe->menu.menu);
-  fe->menu.menu = NULL;
+  free_sgt_menu (fe);
 
   if (accepted) {
     /* Type selected */
@@ -340,8 +350,7 @@ create_types_menu (frontend * fe){
   n = midend_num_presets(fe->me);
 
   if(n <= 0){ /* No types */
-    ps3_menu_free (fe->menu.menu);
-    fe->menu.menu = NULL;
+    free_sgt_menu (fe);
     return;
   } else{
     for(i = 0; i < n; i++){
@@ -362,10 +371,9 @@ puzzles_menu_callback (frontend *fe, int accepted)
   if (accepted == FALSE)
     return;
 
-  /* Game selected */
-  ps3_menu_free (fe->menu.menu);
-  fe->menu.menu = NULL;
+  free_sgt_menu (fe);
 
+  /* Game selected */
   create_midend (fe, selected_item);
 }
 

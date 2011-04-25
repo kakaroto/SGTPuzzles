@@ -149,6 +149,7 @@ _load_image (cairo_surface_t *image, int size)
   /* Replace the destination with the source instead of overlaying */
   cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
   cairo_paint (cr);
+  cairo_destroy (cr);
 
   return surface;
 }
@@ -764,6 +765,7 @@ ps3_menu_redraw (Ps3Menu *menu)
     cairo_reset_clip (cr);
   }
   cairo_destroy (cr);
+  cairo_surface_flush (menu->surface);
 }
 
 cairo_surface_t *
@@ -796,5 +798,7 @@ ps3_menu_free (Ps3Menu *menu)
     cairo_surface_destroy (menu->bg_image);
   if (menu->bg_sel_image)
     cairo_surface_destroy (menu->bg_sel_image);
+  if (menu->disabled_image)
+    cairo_surface_destroy (menu->disabled_image);
   free (menu);
 }

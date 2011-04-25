@@ -450,13 +450,7 @@ destroy_window (frontend *fe)
 {
   int i;
 
-  cairo_surface_finish (fe->image);
-  cairo_surface_destroy (fe->image);
-
-  if (fe->status_bar) {
-    cairo_surface_finish (fe->status_bar);
-    cairo_surface_destroy (fe->status_bar);
-  }
+  destroy_midend (fe);
 
   if (fe->background) {
     cairo_surface_finish (fe->background);
@@ -469,6 +463,8 @@ destroy_window (frontend *fe)
 
   rsxFinish (fe->context, 1);
   free (fe->host_addr);
+
+  free_sgt_menu (fe);
 
   sfree (fe);
 }

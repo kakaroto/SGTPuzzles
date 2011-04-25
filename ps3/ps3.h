@@ -95,6 +95,8 @@ typedef struct {
 
 typedef struct {
   Ps3Menu *menu;
+  const char *title;
+  cairo_surface_t *frame;
   void (*callback) (frontend *fe, int accepted);
   void (*draw) (frontend *fe, cairo_t *cr);
 } SGTPuzzlesMenu;
