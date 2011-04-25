@@ -5,8 +5,7 @@
  * Copyright (C) Clément Bouvet (TeToNN)
  * Copyright (C) Simon Tatham
  *
- * This software is distributed under the terms of the GNU General Public
- * License ("GPL") version 3, as published by the Free Software Foundation.
+ * This software is distributed under the terms of the MIT License
  */
 
 #ifndef __PS3_DRAWING_API_H__
