@@ -92,6 +92,15 @@ typedef struct {
   s32 result;
 } SaveData;
 
+
+
+typedef struct {
+  int drawing;
+  int opened;
+  int closed;
+  int exit;
+} XMBEvent;
+
 struct frontend {
   /* RSX device context */
   gcmContextData *context;
@@ -127,6 +136,7 @@ struct frontend {
   GameMode mode;
   Ps3Menu *menu;
   SaveData save_data;
+  XMBEvent xmb;
 };
 
 typedef struct {

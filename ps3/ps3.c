@@ -721,13 +721,6 @@ destroy_window (frontend *fe)
   sfree (fe);
 }
 
-typedef struct {
-  int drawing;
-  int opened;
-  int closed;
-  int exit;
-} XMBEvent;
-
 static void
 event_handler (u64 status, u64 param, void * user_data)
 {
@@ -761,119 +754,128 @@ get_cwd(const char *path)
   printf ("cwd is : %s\n", cwd);
 }
 
+
 int
-main (int argc, char *argv[])
+main_loop_iterate (frontend *fe)
 {
   padInfo padinfo;
   padData paddata;
-  int frame = 0;
-  XMBEvent xmb = {0, 0};
-  struct timeval previous_time;
   int i;
+
+  if (fe->xmb.exit != 0)
+    goto done;
+
+  ioPadGetInfo (&padinfo);
+  for (i = 0; i < MAX_PADS; i++) {
+    if (padinfo.status[i]) {
+      ioPadGetData (i, &paddata);
+      if (handle_pad (fe, &paddata) == FALSE)
+        goto done;
+    }
+  }
+
+  /* Check for timer */
+  if (fe->timer_enabled && fe->me) {
+    double elapsed;
+    struct timeval now;
+
+    gettimeofday(&now, NULL);
+    elapsed = ((now.tv_usec - fe->timer_last_ts.tv_usec) * 0.000001 +
+        (now.tv_sec - fe->timer_last_ts.tv_sec));
+    if (elapsed >= 0.02) {
+      gettimeofday(&fe->timer_last_ts, NULL);
+      midend_timer (fe->me, elapsed);
+    }
+  }
+
+  /* When the XMB is opened, we need to flip buffers otherwise it will freeze.
+   * It seems the XMB needs to get our buffers so it can overlay itself on top.
+   * If we stop flipping buffers, the xmb will freeze.
+   */
+  if (fe->xmb.opened || fe->xmb.drawing) {
+    rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
+
+    setRenderTarget(fe->context, buffer);
+    /* Wait for the last flip to finish, so we can draw to the old buffer */
+    waitFlip ();
+    memset (buffer->ptr, 0, buffer->height * buffer->width * 4);
+    /* Flip buffer onto screen */
+    flipBuffer (fe->context, fe->currentBuffer);
+    fe->currentBuffer++;
+    if (fe->currentBuffer >= MAX_BUFFERS)
+      fe->currentBuffer = 0;
+  }
+  if (fe->xmb.closed) {
+    fe->xmb.closed = 0;
+    fe->redraw = TRUE;
+  }
+  if ((fe->save_data.saving || fe->save_data.loading) &&
+      fe->save_data.save_tid == 0) {
+    /* We successfully loaded a new game, need to recaulculate size and force
+       a redraw because the game params might have changed */
+    if (fe->save_data.loading && fe->save_data.result == 0) {
+      calculate_puzzle_size (fe);
+
+      midend_force_redraw(fe->me);
+    }
+    fe->save_data.saving = fe->save_data.loading = FALSE;
+    fe->redraw = TRUE;
+  }
+
+#if SHOW_FPS || STATUS_BAR_SHOW_FPS
+  /* Show FPS */
+  {
+    static struct timeval previous_time;
+    struct timeval now;
+    double elapsed;
+
+    gettimeofday(&now, NULL);
+    elapsed = ((now.tv_usec - previous_time.tv_usec) * 0.000001 +
+        (now.tv_sec - previous_time.tv_sec));
+    previous_time = now;
+    fe->redraw = TRUE;
+
+#if SHOW_FPS
+    DEBUG ("FPS : %f\n", 1 / elapsed);
+#endif
+#if STATUS_BAR_SHOW_FPS
+    {
+      char fps[100];
+      snprintf (fps, 100, "FPS : %f", 1 / elapsed);
+      ps3_status_bar (fe, fps);
+    }
+#endif
+  }
+#endif
+
+  if (fe->redraw)
+    ps3_refresh_draw (fe);
+  fe->redraw = FALSE;
+
+  /* We need to poll for events */
+  sysUtilCheckCallback ();
+
+  return TRUE;
+
+ done:
+  return FALSE;
+}
+
+int
+main (int argc, char *argv[])
+{
   frontend *fe;
-  double elapsed;
 
   get_cwd(argv[0]);
 
   fe = new_window ();
   ioPadInit (7);
-  sysUtilRegisterCallback (SYSUTIL_EVENT_SLOT0, event_handler, &xmb);
-
-  gettimeofday (&previous_time, NULL);
+  sysUtilRegisterCallback (SYSUTIL_EVENT_SLOT0, event_handler, &fe->xmb);
 
   /* Main loop */
-  while (xmb.exit == 0)
-  {
-    ioPadGetInfo (&padinfo);
-    for (i = 0; i < MAX_PADS; i++) {
-      if (padinfo.status[i]) {
-        ioPadGetData (i, &paddata);
-        if (handle_pad (fe, &paddata) == FALSE)
-          goto end;
-      }
-    }
-    /* Check for timer */
-    if (fe->timer_enabled && fe->me) {
-      struct timeval now;
+  while (main_loop_iterate (fe));
 
-      gettimeofday(&now, NULL);
-      elapsed = ((now.tv_usec - fe->timer_last_ts.tv_usec) * 0.000001 +
-          (now.tv_sec - fe->timer_last_ts.tv_sec));
-      if (elapsed >= 0.02) {
-        gettimeofday(&fe->timer_last_ts, NULL);
-        midend_timer (fe->me, elapsed);
-      }
-    }
-
-    /* When the XMB is opened, we need to flip buffers otherwise it will freeze.
-     * It seems the XMB needs to get our buffers so it can overlay itself on top.
-     * If we stop flipping buffers, the xmb will freeze.
-     */
-    if (xmb.opened || xmb.drawing) {
-      rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
-
-      setRenderTarget(fe->context, buffer);
-      /* Wait for the last flip to finish, so we can draw to the old buffer */
-      waitFlip ();
-      memset (buffer->ptr, 0, buffer->height * buffer->width * 4);
-      /* Flip buffer onto screen */
-      flipBuffer (fe->context, fe->currentBuffer);
-      fe->currentBuffer++;
-      if (fe->currentBuffer >= MAX_BUFFERS)
-        fe->currentBuffer = 0;
-    }
-    if (xmb.closed) {
-      xmb.closed = 0;
-      fe->redraw = TRUE;
-    }
-    if ((fe->save_data.saving || fe->save_data.loading) &&
-        fe->save_data.save_tid == 0) {
-      /* We successfully loaded a new game, need to recaulculate size and force
-         a redraw because the game params might have changed */
-      if (fe->save_data.loading && fe->save_data.result == 0) {
-        calculate_puzzle_size (fe);
-
-        midend_force_redraw(fe->me);
-      }
-      fe->save_data.saving = fe->save_data.loading = FALSE;
-      fe->redraw = TRUE;
-    }
-
-#if SHOW_FPS || STATUS_BAR_SHOW_FPS
-    /* Show FPS */
-    {
-      struct timeval now;
-
-      gettimeofday(&now, NULL);
-      elapsed = ((now.tv_usec - previous_time.tv_usec) * 0.000001 +
-          (now.tv_sec - previous_time.tv_sec));
-      previous_time = now;
-      fe->redraw = TRUE;
-
-#if SHOW_FPS
-      DEBUG ("FPS : %f\n", 1 / elapsed);
-#endif
-#if STATUS_BAR_SHOW_FPS
-      {
-        char fps[100];
-        snprintf (fps, 100, "FPS : %f", 1 / elapsed);
-        ps3_status_bar (fe, fps);
-      }
-#endif
-    }
-#endif
-
-    if (fe->redraw)
-      ps3_refresh_draw (fe);
-    fe->redraw = FALSE;
-
-    frame++;
-    /* We need to poll for events */
-    sysUtilCheckCallback ();
-  }
-
- end:
-
+  printf ("Exiting application\n");
   destroy_window (fe);
   ioPadEnd();
   sysUtilUnregisterCallback(SYSUTIL_EVENT_SLOT0);
