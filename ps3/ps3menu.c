@@ -154,8 +154,8 @@ _load_image (cairo_surface_t *image, int size)
   return surface;
 }
 
-#define BUTTON_ARC_PAD_X 10
-#define BUTTON_ARC_PAD_Y 10
+#define BUTTON_ARC_PAD_X 7
+#define BUTTON_ARC_PAD_Y 7
 #define BUTTON_ARC_RADIUS 7
 
 static void
