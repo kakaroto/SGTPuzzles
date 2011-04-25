@@ -11,7 +11,6 @@
 
 #include <ppu-lv2.h>
 #include <stdio.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
@@ -105,212 +104,6 @@ const PuzzleDescription puzzle_descriptions[] = {
    "one of each digit and the greater-than signs are satisfied."},
   {"untangle", "Move points around until no lines cross."}
 };
-
-static void calculate_puzzle_size (frontend *fe);
-static void create_puzzle_menu (frontend * fe);
-static void destroy_midend (frontend * fe);
-static void create_midend (frontend* fe, int game_idx);
-
-void
-fatal (char *fmt, ...)
-{
-  va_list ap;
-
-  fprintf (stderr, "fatal error: ");
-
-  va_start (ap, fmt);
-  vfprintf (stderr, fmt, ap);
-  va_end (ap);
-
-  fprintf (stderr, "\n");
-  exit (1);
-}
-
-void
-get_random_seed (void **randseed, int *randseedsize)
-{
-  struct timeval *tvp = snew (struct timeval);
-
-  gettimeofday (tvp, NULL);
-  *randseed = (void *) tvp;
-  *randseedsize = sizeof (struct timeval);
-}
-
-void
-frontend_default_colour (frontend * fe, float *output)
-{
-  /* let's use grey as the background */
-  output[0] = output[1] = output[2] = 0.7;
-}
-
-void
-deactivate_timer (frontend * fe)
-{
-  fe->timer_enabled = FALSE;
-}
-
-void
-activate_timer (frontend * fe)
-{
-  gettimeofday(&fe->timer_last_ts, NULL);
-  fe->timer_enabled = TRUE;
-}
-
-static const struct drawing_api ps3_drawing = {
-  ps3_draw_text,
-  ps3_draw_rect,
-  ps3_draw_line,
-  ps3_draw_poly,
-  ps3_draw_circle,
-  ps3_draw_update,
-  ps3_clip,
-  ps3_unclip,
-  ps3_start_draw,
-  ps3_end_draw,
-  ps3_status_bar,
-  ps3_blitter_new,
-  ps3_blitter_free,
-  ps3_blitter_save,
-  ps3_blitter_load,
-  NULL, NULL, NULL, NULL, NULL, NULL,   /* {begin,end}_{doc,page,puzzle} */
-  NULL, NULL,                   /* line_width, line_dotted */
-  NULL,
-  ps3_draw_thick_line,
-};
-
-static void
-_new_game (frontend *fe)
-{
-  midend_new_game (fe->me);
-  midend_force_redraw(fe->me);
-}
-
-static void
-_restart_game (frontend *fe)
-{
-  midend_restart_game (fe->me);
-  midend_force_redraw(fe->me);
-}
-
-static void
-_save_game (frontend *fe)
-{
-  if (ps3_save_game (fe) == FALSE)
-    fe->redraw = TRUE;
-}
-
-static void
-_load_game (frontend *fe)
-{
-  if (ps3_load_game (fe) == FALSE)
-    fe->redraw = TRUE;
-}
-
-static void
-_solve_game (frontend *fe)
-{
-  midend_solve (fe->me);
-  midend_force_redraw(fe->me);
-}
-
-static void
-_change_game (frontend *fe)
-{
-  destroy_midend (fe);
-  create_puzzle_menu (fe);
-  fe->redraw = TRUE;
-}
-
-
-static const struct {
-  const char *title;
-  void (*callback) (frontend *fe);
-} main_menu_items[] = {
-  {"New Game", _new_game},
-  {"Restart Game", _restart_game},
-  {"Save Game", _save_game},
-  {"Load Game", _load_game},
-  {"Solve", _solve_game},
-  {"Change Puzzle", _change_game},
-  {NULL, NULL},
-};
-
-static void
-create_main_menu (frontend * fe) {
-  cairo_surface_t *surface;
-  int i;
-
-  fe->mode = MODE_MAIN_MENU;
-  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      306, fe->height * 0.7);
-
-  /* Infinite vertical scrollable menu */
-  fe->menu = ps3_menu_new (surface, -1, 1, 300, 40);
-  for (i = 0; main_menu_items[i].title; i++) {
-    ps3_menu_add_item (fe->menu, main_menu_items[i].title, 25);
-
-    if (main_menu_items[i].callback == _solve_game)
-      fe->menu->items[i].enabled = fe->thegame->can_solve;
-  }
-}
-
-static void
-create_types_menu (frontend * fe){
-  cairo_surface_t *surface;
-  int n;
-  int i;
-
-  fe->mode = MODE_TYPES_MENU;
-  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      306, fe->height * 0.7);
-
-  fe->menu = ps3_menu_new (surface, -1, 1, 300, 40);
-  n = midend_num_presets(fe->me);
-
-  if(n <= 0){ /* No types */
-    fe->mode = MODE_PUZZLE;
-    ps3_menu_free (fe->menu);
-    fe->menu = NULL;
-    return;
-  } else{
-    for(i = 0; i < n; i++){
-      char* name;
-      game_params *params;
-      midend_fetch_preset(fe->me, i, &name, &params);
-      ps3_menu_add_item (fe->menu, name, 25);
-    }
-  }
-}
-
-static void
-create_puzzle_menu (frontend * fe) {
-  cairo_surface_t *surface;
-  int width, height;
-  int i ;
-
-  width = fe->width * 0.9;
-  height = (fe->height * 0.9) - PUZZLE_MENU_DESCRIPTION_HEIGHT;
-  fe->mode = MODE_PUZZLE_MENU;
-  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32, width, height);
-
-  /* Infinite vertical scrollable menu */
-  fe->menu = ps3_menu_new_full (surface, -1, 4, (width / 4) - (2 * 20), 150,
-      20, 5, NULL, NULL, NULL);
-  cairo_surface_destroy (surface);
-
-  for (i = 0; i < gamecount; i++) {
-    char filename[256];
-
-    ps3_menu_add_item (fe->menu, gamelist[i]->name, 20);
-    snprintf (filename, 255, "%s/data/puzzles/%s.png", cwd, gamelist_names[i]);
-    surface = cairo_image_surface_create_from_png (filename);
-    if (surface) {
-      fe->menu->items[i].alignment = PS3_MENU_ALIGN_BOTTOM_CENTER;
-      ps3_menu_set_item_image (fe->menu, i, surface, PS3_MENU_IMAGE_POSITION_TOP);
-      cairo_surface_destroy (surface);
-    }
-  }
-}
 
 static int
 handle_pointer (frontend *fe, padData *paddata)
@@ -547,7 +340,7 @@ handle_pad (frontend *fe, padData *paddata)
   return TRUE;
 }
 
-static void
+void
 calculate_puzzle_size (frontend *fe)
 {
   int have_status = STATUS_BAR_SHOW_FPS;
@@ -612,7 +405,7 @@ calculate_puzzle_size (frontend *fe)
   fe->last_cursor_pressed = -1;
 }
 
-static void
+void
 create_midend (frontend* fe, int game_idx)
 {
   if(fe->me) {
@@ -621,7 +414,7 @@ create_midend (frontend* fe, int game_idx)
 
   fe->game_idx = game_idx;
   fe->thegame = gamelist[fe->game_idx];
-  fe->me = midend_new (fe, fe->thegame, &ps3_drawing, fe);
+  fe->me = midend_new (fe, fe->thegame, &ps3_drawing_api, fe);
   fe->colours = midend_colours(fe->me, &fe->ncolours);
   midend_new_game (fe->me);
 
@@ -633,7 +426,7 @@ create_midend (frontend* fe, int game_idx)
   midend_force_redraw(fe->me);
 }
 
-static void
+void
 destroy_midend (frontend *fe)
 {
   if(fe->me) {
@@ -850,7 +643,7 @@ main_loop_iterate (frontend *fe)
 #endif
 
   if (fe->redraw)
-    ps3_refresh_draw (fe);
+    ps3_redraw_screen (fe);
   fe->redraw = FALSE;
 
   /* We need to poll for events */

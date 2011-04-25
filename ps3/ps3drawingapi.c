@@ -12,6 +12,99 @@
 
 #include "ps3drawingapi.h"
 #include "ps3.h"
+#include <sys/time.h>
+#include <stdarg.h>
+
+static void ps3_draw_text (void *handle, int x, int y, int fonttype,
+    int fontsize, int align, int colour, char *text);
+static void ps3_draw_rect (void *handle, int x, int y, int w, int h,
+    int colour);
+static void ps3_draw_line (void *handle, int x1, int y1, int x2, int y2,
+    int colour);
+static void ps3_draw_poly (void *handle, int *coords, int npoints,
+    int fillcolour, int outlinecolour);
+static void ps3_draw_circle (void *handle, int cx, int cy, int radius, int fillcolour,
+    int outlinecolour);
+static void ps3_draw_thick_line (void *handle, float thickness,
+    float x1, float y1, float x2, float y2, int colour);
+static void ps3_draw_update (void *handle, int x, int y, int w, int h);
+static void ps3_clip (void *handle, int x, int y, int w, int h);
+static void ps3_unclip (void *handle);
+static void ps3_status_bar (void *handle, char *text);
+static void ps3_start_draw (void *handle);
+static void ps3_end_draw (void *handle);
+
+static blitter *ps3_blitter_new (void *handle, int w, int h);
+static void ps3_blitter_free (void *handle, blitter * bl);
+static void ps3_blitter_save (void *handle, blitter * bl, int x, int y);
+static void ps3_blitter_load (void *handle, blitter * bl, int x, int y);
+
+void
+fatal (char *fmt, ...)
+{
+  va_list ap;
+
+  fprintf (stderr, "fatal error: ");
+
+  va_start (ap, fmt);
+  vfprintf (stderr, fmt, ap);
+  va_end (ap);
+
+  fprintf (stderr, "\n");
+  exit (1);
+}
+
+void
+get_random_seed (void **randseed, int *randseedsize)
+{
+  struct timeval *tvp = snew (struct timeval);
+
+  gettimeofday (tvp, NULL);
+  *randseed = (void *) tvp;
+  *randseedsize = sizeof (struct timeval);
+}
+
+void
+frontend_default_colour (frontend * fe, float *output)
+{
+  /* let's use grey as the background */
+  output[0] = output[1] = output[2] = 0.7;
+}
+
+void
+deactivate_timer (frontend * fe)
+{
+  fe->timer_enabled = FALSE;
+}
+
+void
+activate_timer (frontend * fe)
+{
+  gettimeofday(&fe->timer_last_ts, NULL);
+  fe->timer_enabled = TRUE;
+}
+
+const struct drawing_api ps3_drawing_api = {
+  ps3_draw_text,
+  ps3_draw_rect,
+  ps3_draw_line,
+  ps3_draw_poly,
+  ps3_draw_circle,
+  ps3_draw_update,
+  ps3_clip,
+  ps3_unclip,
+  ps3_start_draw,
+  ps3_end_draw,
+  ps3_status_bar,
+  ps3_blitter_new,
+  ps3_blitter_free,
+  ps3_blitter_save,
+  ps3_blitter_load,
+  NULL, NULL, NULL, NULL, NULL, NULL,   /* {begin,end}_{doc,page,puzzle} */
+  NULL, NULL,                   /* line_width, line_dotted */
+  NULL,
+  ps3_draw_thick_line,
+};
 
 
 /* front end drawing api */
@@ -23,7 +116,7 @@ set_colour (frontend * fe, int colour)
       fe->colours[3 * colour + 1], fe->colours[3 * colour + 2]);
 }
 
-void
+static void
 ps3_draw_text (void *handle, int x, int y, int fonttype, int fontsize,
     int align, int colour, char *text)
 {
@@ -67,7 +160,7 @@ ps3_draw_text (void *handle, int x, int y, int fonttype, int fontsize,
   cairo_restore(fe->cr);
 }
 
-void
+static void
 ps3_draw_rect (void *handle, int x, int y, int w, int h, int colour)
 {
   frontend *fe = (frontend *) handle;
@@ -81,7 +174,7 @@ ps3_draw_rect (void *handle, int x, int y, int w, int h, int colour)
   cairo_restore (fe->cr);
 }
 
-void
+static void
 ps3_draw_line (void *handle, int x1, int y1, int x2, int y2, int colour)
 {
   frontend *fe = (frontend *) handle;
@@ -93,7 +186,7 @@ ps3_draw_line (void *handle, int x1, int y1, int x2, int y2, int colour)
   cairo_stroke (fe->cr);
 }
 
-void
+static void
 ps3_draw_poly (void *handle, int *coords, int npoints, int fillcolour,
     int outlinecolour)
 {
@@ -114,7 +207,7 @@ ps3_draw_poly (void *handle, int *coords, int npoints, int fillcolour,
   cairo_stroke (fe->cr);
 }
 
-void
+static void
 ps3_draw_circle (void *handle, int cx, int cy, int radius, int fillcolour,
     int outlinecolour)
 {
@@ -132,7 +225,7 @@ ps3_draw_circle (void *handle, int cx, int cy, int radius, int fillcolour,
   cairo_stroke (fe->cr);
 }
 
-void
+static void
 ps3_draw_thick_line (void *handle, float thickness, float x1, float y1,
     float x2, float y2, int colour)
 {
@@ -148,7 +241,7 @@ ps3_draw_thick_line (void *handle, float thickness, float x1, float y1,
   cairo_restore (fe->cr);
 }
 
-void
+static void
 ps3_draw_update (void *handle, int x, int y, int w, int h)
 {
   /* The PS3 is fast enough to redraw the whole screen everytime,
@@ -156,7 +249,7 @@ ps3_draw_update (void *handle, int x, int y, int w, int h)
   */
 }
 
-void
+static void
 ps3_clip (void *handle, int x, int y, int w, int h)
 {
   frontend *fe = (frontend *) handle;
@@ -166,7 +259,7 @@ ps3_clip (void *handle, int x, int y, int w, int h)
   cairo_clip (fe->cr);
 }
 
-void
+static void
 ps3_unclip (void *handle)
 {
   frontend *fe = (frontend *) handle;
@@ -174,7 +267,7 @@ ps3_unclip (void *handle)
   cairo_reset_clip (fe->cr);
 }
 
-void
+static void
 ps3_status_bar (void *handle, char *text)
 {
   frontend *fe = (frontend *) handle;
@@ -210,7 +303,7 @@ ps3_status_bar (void *handle, char *text)
   cairo_destroy (cr);
 }
 
-void
+static void
 ps3_start_draw (void *handle)
 {
   frontend *fe = (frontend *) handle;
@@ -225,7 +318,7 @@ ps3_start_draw (void *handle)
   cairo_set_line_join (fe->cr, CAIRO_LINE_JOIN_ROUND);
 }
 
-void
+static void
 ps3_end_draw (void *handle)
 {
   frontend *fe = (frontend *) handle;
@@ -241,7 +334,7 @@ ps3_end_draw (void *handle)
 
 // blitted copy pasted :)
 
-blitter *
+static blitter *
 ps3_blitter_new (void *handle, int w, int h)
 {
   blitter *bl = snew (blitter);
@@ -252,14 +345,14 @@ ps3_blitter_new (void *handle, int w, int h)
   return bl;
 }
 
-void
+static void
 ps3_blitter_free (void *handle, blitter * bl)
 {
   cairo_surface_destroy (bl->image);
   sfree (bl);
 }
 
-void
+static void
 ps3_blitter_save (void *handle, blitter * bl, int x, int y)
 {
   frontend *fe = (frontend *) handle;
@@ -272,7 +365,7 @@ ps3_blitter_save (void *handle, blitter * bl, int x, int y)
   bl->y = y;
 }
 
-void
+static void
 ps3_blitter_load (void *handle, blitter * bl, int x, int y)
 {
   frontend *fe = (frontend *) handle;

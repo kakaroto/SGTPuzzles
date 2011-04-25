@@ -12,6 +12,9 @@
 
 #include "ps3.h"
 
-void ps3_refresh_draw (frontend *fe);
+void ps3_redraw_screen (frontend *fe);
+void create_puzzle_menu (frontend * fe);
+void create_main_menu (frontend * fe);
+void create_types_menu (frontend * fe);
 
 #endif /* __PS3_GRAPHICS_H__ */

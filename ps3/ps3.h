@@ -148,4 +148,16 @@ typedef struct {
 extern const PuzzleDescription puzzle_descriptions[];
 extern char cwd[];
 
+typedef struct {
+  const char *title;
+  void (*callback) (frontend *fe);
+} MainMenuItems;
+
+extern const MainMenuItems main_menu_items[];
+
+void destroy_midend (frontend * fe);
+void create_midend (frontend* fe, int game_idx);
+void calculate_puzzle_size (frontend *fe);
+int main_loop_iterate (frontend *fe);
+
 #endif /* __PS3_H__ */

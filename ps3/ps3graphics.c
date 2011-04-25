@@ -8,6 +8,7 @@
  */
 
 #include "ps3graphics.h"
+#include "ps3save.h"
 
 static void draw_background (frontend *fe, cairo_t *cr);
 static void draw_puzzle (frontend *fe, cairo_t *cr);
@@ -18,21 +19,15 @@ static void draw_puzzle_menu (frontend *fe, cairo_t *cr);
 static void draw_types_menu (frontend *fe, cairo_t *cr);
 
 void
-ps3_prepare_buffer (frontend *fe)
-{
-  rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
-
-  setRenderTarget(fe->context, buffer);
-  /* Wait for the last flip to finish, so we can draw to the old buffer */
-  waitFlip ();
-}
-
-void
-ps3_render_buffer (frontend *fe)
+ps3_redraw_screen (frontend *fe)
 {
   rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
   cairo_surface_t *surface;
   cairo_t *cr;
+
+  setRenderTarget(fe->context, buffer);
+  /* Wait for the last flip to finish, so we can draw to the old buffer */
+  waitFlip ();
 
   /* Draw our window */
   surface = cairo_image_surface_create_for_data ((u8 *) buffer->ptr,
@@ -64,12 +59,6 @@ ps3_render_buffer (frontend *fe)
     fe->currentBuffer = 0;
 }
 
-void
-ps3_refresh_draw (frontend *fe)
-{
-  ps3_prepare_buffer (fe);
-  ps3_render_buffer (fe);
-}
 
 static void
 draw_background (frontend *fe, cairo_t *cr)
@@ -220,4 +209,137 @@ draw_puzzle_menu (frontend *fe, cairo_t *cr)
   cairo_show_text (cr, description2);
 
   cairo_restore(cr);
+}
+
+
+
+static void
+_new_game (frontend *fe)
+{
+  midend_new_game (fe->me);
+  midend_force_redraw(fe->me);
+}
+
+static void
+_restart_game (frontend *fe)
+{
+  midend_restart_game (fe->me);
+  midend_force_redraw(fe->me);
+}
+
+static void
+_save_game (frontend *fe)
+{
+  if (ps3_save_game (fe) == FALSE)
+    fe->redraw = TRUE;
+}
+
+static void
+_load_game (frontend *fe)
+{
+  if (ps3_load_game (fe) == FALSE)
+    fe->redraw = TRUE;
+}
+
+static void
+_solve_game (frontend *fe)
+{
+  midend_solve (fe->me);
+  midend_force_redraw(fe->me);
+}
+
+static void
+_change_game (frontend *fe)
+{
+  destroy_midend (fe);
+  create_puzzle_menu (fe);
+  fe->redraw = TRUE;
+}
+
+
+const MainMenuItems main_menu_items[] = {
+  {"New Game", _new_game},
+  {"Restart Game", _restart_game},
+  {"Save Game", _save_game},
+  {"Load Game", _load_game},
+  {"Solve", _solve_game},
+  {"Change Puzzle", _change_game},
+  {NULL, NULL},
+};
+
+void
+create_main_menu (frontend * fe) {
+  cairo_surface_t *surface;
+  int i;
+
+  fe->mode = MODE_MAIN_MENU;
+  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
+      306, fe->height * 0.7);
+
+  /* Infinite vertical scrollable menu */
+  fe->menu = ps3_menu_new (surface, -1, 1, 300, 40);
+  for (i = 0; main_menu_items[i].title; i++) {
+    ps3_menu_add_item (fe->menu, main_menu_items[i].title, 25);
+
+    if (main_menu_items[i].callback == _solve_game)
+      fe->menu->items[i].enabled = fe->thegame->can_solve;
+  }
+}
+
+void
+create_types_menu (frontend * fe){
+  cairo_surface_t *surface;
+  int n;
+  int i;
+
+  fe->mode = MODE_TYPES_MENU;
+  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
+      306, fe->height * 0.7);
+
+  fe->menu = ps3_menu_new (surface, -1, 1, 300, 40);
+  n = midend_num_presets(fe->me);
+
+  if(n <= 0){ /* No types */
+    fe->mode = MODE_PUZZLE;
+    ps3_menu_free (fe->menu);
+    fe->menu = NULL;
+    return;
+  } else{
+    for(i = 0; i < n; i++){
+      char* name;
+      game_params *params;
+      midend_fetch_preset(fe->me, i, &name, &params);
+      ps3_menu_add_item (fe->menu, name, 25);
+    }
+  }
+}
+
+void
+create_puzzle_menu (frontend * fe) {
+  cairo_surface_t *surface;
+  int width, height;
+  int i ;
+
+  width = fe->width * 0.9;
+  height = (fe->height * 0.9) - PUZZLE_MENU_DESCRIPTION_HEIGHT;
+  fe->mode = MODE_PUZZLE_MENU;
+  surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32, width, height);
+
+  /* Infinite vertical scrollable menu */
+  fe->menu = ps3_menu_new_full (surface, -1, 4, (width / 4) - (2 * 20), 150,
+      20, 5, NULL, NULL, NULL);
+  cairo_surface_destroy (surface);
+
+  for (i = 0; i < gamecount; i++) {
+    char filename[256];
+
+    ps3_menu_add_item (fe->menu, gamelist[i]->name, 20);
+    snprintf (filename, 255, "%s/data/puzzles/%s.png", cwd, gamelist_names[i]);
+    surface = cairo_image_surface_create_from_png (filename);
+    if (surface) {
+      fe->menu->items[i].alignment = PS3_MENU_ALIGN_BOTTOM_CENTER;
+      ps3_menu_set_item_image (fe->menu, i, surface, PS3_MENU_IMAGE_POSITION_TOP);
+      cairo_surface_destroy (surface);
+    }
+  }
 }
