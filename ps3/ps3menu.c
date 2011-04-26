@@ -90,12 +90,13 @@ _draw_item (Ps3Menu *menu, Ps3MenuItem *item,
   cairo_pattern_set_extend (cairo_get_source(cr), CAIRO_EXTEND_PAD);
 
   /* Replace the destination with the source instead of overlaying */
-  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+  //cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
   cairo_paint (cr);
   cairo_restore (cr);
 
   /* Reset the operator to what it should be */
-  cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
+  //cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
+
   cairo_rectangle (cr, x + item->ipad_x, y + item->ipad_y, width, height);
   cairo_clip (cr);
   if (item->image) {
