@@ -199,6 +199,40 @@ clip_round_edge (cairo_t *cr, int width, int height, int x, int y, int rad)
   cairo_clip (cr);
 }
 
+#define STANDARD_MENU_ITEM_WIDTH 200
+#define STANDARD_MENU_ITEM_HEIGHT 25
+#define STANDARD_MENU_PAD_X 5
+#define STANDARD_MENU_PAD_Y 6
+#define STANDARD_MENU_BOX_X 7
+#define STANDARD_MENU_BOX_Y 7
+#define STANDARD_MENU_ITEM_BOX_WIDTH (STANDARD_MENU_ITEM_WIDTH + \
+      (2 * STANDARD_MENU_BOX_X))
+#define STANDARD_MENU_ITEM_BOX_HEIGHT (STANDARD_MENU_ITEM_HEIGHT + \
+      (2 * STANDARD_MENU_BOX_Y))
+#define STANDARD_MENU_ITEM_TOTAL_WIDTH (STANDARD_MENU_ITEM_BOX_WIDTH + \
+      (2 * STANDARD_MENU_PAD_X))
+#define STANDARD_MENU_ITEM_TOTAL_HEIGHT (STANDARD_MENU_ITEM_BOX_HEIGHT + \
+      (2 * STANDARD_MENU_PAD_Y))
+#define STANDARD_MENU_ITEM_IPAD_X (STANDARD_MENU_BOX_X + PS3_MENU_DEFAULT_IPAD_X)
+#define STANDARD_MENU_ITEM_IPAD_Y (STANDARD_MENU_BOX_Y + PS3_MENU_DEFAULT_IPAD_Y)
+#define STANDARD_MENU_FRAME_SIDE 25
+#define STANDARD_MENU_FRAME_TOP 60
+#define STANDARD_MENU_FRAME_BOTTOM 40
+#define STANDARD_MENU_FRAME_HEIGHT (STANDARD_MENU_FRAME_TOP + \
+      STANDARD_MENU_FRAME_BOTTOM) // + nitems * STANDARD_MENU_ITEM_TOTAL_HEIGHT
+#define STANDARD_MENU_FRAME_WIDTH (STANDARD_MENU_ITEM_TOTAL_WIDTH + \
+      (2 * STANDARD_MENU_FRAME_SIDE))
+
+#define STANDARD_MENU_WIDTH (STANDARD_MENU_ITEM_TOTAL_WIDTH)
+#define STANDARD_MENU_HEIGHT (fe->height * 0.7)
+
+#define STANDARD_MENU_BOX_CORNER_RADIUS 11
+#define STANDARD_MENU_BOX_BORDER_WIDTH 1
+#define STANDARD_MENU_FRAME_CORNER_RADIUS 32
+#define STANDARD_MENU_FRAME_BORDER_WIDTH 2
+#define STANDARD_MENU_TITLE_FONT_SIZE 25
+#define MAIN_MENU_FONT_SIZE 15
+#define TYPES_MENU_FONT_SIZE 12
 
 static void
 create_standard_menu_frame (frontend *fe)
@@ -212,15 +246,18 @@ create_standard_menu_frame (frontend *fe)
 
   printf ("Creating %s frame\n", fe->menu.title);
 
-  width = 300 + 14 + 50;
-  height = (fe->menu.menu->nitems * (40 + 14 + 12));
-  if (height > (fe->height * 0.7))
-    height = fe->height * 0.7;
-  height += 100;
+  /* Adapt frame height depending on items in the menu */
+  width = STANDARD_MENU_FRAME_WIDTH;
+  height = fe->menu.menu->nitems * STANDARD_MENU_ITEM_TOTAL_HEIGHT;
+  if (height > STANDARD_MENU_HEIGHT)
+    height = STANDARD_MENU_HEIGHT;
+  height += STANDARD_MENU_FRAME_HEIGHT;
+
   fe->menu.frame = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      300 + 14 + 50, height);
+      width, height);
   cr = cairo_create (fe->menu.frame);
-  clip_round_edge (cr, width, height, 32, 32, 32);
+  clip_round_edge (cr, width, height, STANDARD_MENU_FRAME_CORNER_RADIUS,
+      STANDARD_MENU_FRAME_CORNER_RADIUS, STANDARD_MENU_FRAME_CORNER_RADIUS);
   linpat = cairo_pattern_create_linear (width, 0, width, height);
 
   cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.3, 0.3, 0.3);
@@ -235,9 +272,12 @@ create_standard_menu_frame (frontend *fe)
   cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.03, 0.07, 0.10);
   cairo_pattern_add_color_stop_rgb (linpat, 0.1, 0.04, 0.09, 0.16);
   cairo_pattern_add_color_stop_rgb (linpat, 0.5, 0.05, 0.20, 0.35);
-  cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.06, 0.35, 0.55);
+  cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.06, 0.55, 0.75);
 
-  clip_round_edge (cr, width, height, 34, 34, 32);
+  clip_round_edge (cr, width, height,
+      STANDARD_MENU_FRAME_CORNER_RADIUS + STANDARD_MENU_FRAME_BORDER_WIDTH,
+      STANDARD_MENU_FRAME_CORNER_RADIUS + STANDARD_MENU_FRAME_BORDER_WIDTH,
+      STANDARD_MENU_FRAME_CORNER_RADIUS);
 
   cairo_set_source (cr, linpat);
   cairo_paint (cr);
@@ -246,13 +286,13 @@ create_standard_menu_frame (frontend *fe)
       CAIRO_FONT_SLANT_NORMAL,
       CAIRO_FONT_WEIGHT_BOLD);
 
-  cairo_set_font_size(cr, 25);
+  cairo_set_font_size(cr, STANDARD_MENU_TITLE_FONT_SIZE);
 
   cairo_font_extents (cr, &fex);
   cairo_text_extents (cr, fe->menu.title, &tex);
 
-  y = 30 + (fex.ascent / 2);
-  x = ((300 + 14 + 50 - tex.width) / 2) - tex.x_bearing;
+  y = (STANDARD_MENU_FRAME_TOP / 2) + (fex.ascent / 2);
+  x = ((width - tex.width) / 2) - tex.x_bearing;
   cairo_move_to(cr, x, y);
   cairo_set_source_rgb (cr, 0.0, 0.3, 0.5);
   cairo_show_text (cr, fe->menu.title);
@@ -278,8 +318,9 @@ draw_standard_menu (frontend *fe, cairo_t *cr)
   cairo_set_source_surface (cr, fe->menu.frame, (fe->width - w) / 2,
       (fe->height - h) / 2);
   cairo_paint (cr);
-  cairo_set_source_surface (cr, surface, ((fe->width - w) / 2) + 25,
-      ((fe->height - h) / 2) + 60);
+  cairo_set_source_surface (cr, surface,
+      ((fe->width - w) / 2) + STANDARD_MENU_FRAME_SIDE,
+      ((fe->height - h) / 2) + STANDARD_MENU_FRAME_TOP);
   cairo_paint (cr);
   cairo_surface_destroy (surface);
 }
@@ -293,14 +334,16 @@ create_standard_background (float r, float g, float b) {
   int width, height;
   cairo_pattern_t *linpat = NULL;
 
-  width = 300 - 10 + 14;
-  height = 40 + 14;
+  width = STANDARD_MENU_ITEM_BOX_WIDTH;
+  height = STANDARD_MENU_ITEM_BOX_HEIGHT;
   background = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32, width, height);
 
-  bg = ps3_menu_create_default_background (300 - 10, 40, r, g, b);
+  bg = ps3_menu_create_default_background (STANDARD_MENU_ITEM_WIDTH,
+      STANDARD_MENU_ITEM_HEIGHT, r, g, b);
 
   cr = cairo_create (background);
-  clip_round_edge (cr, width, height, 11, 11, 11);
+  clip_round_edge (cr, width, height, STANDARD_MENU_BOX_CORNER_RADIUS,
+      STANDARD_MENU_BOX_CORNER_RADIUS, STANDARD_MENU_BOX_CORNER_RADIUS);
 
   linpat = cairo_pattern_create_linear (width, 0, width, height);
 
@@ -310,7 +353,10 @@ create_standard_background (float r, float g, float b) {
   cairo_set_source (cr, linpat);
   cairo_paint_with_alpha (cr, 0.5);
 
-  clip_round_edge (cr, width, height, 12, 12, 11);
+  clip_round_edge (cr, width, height,
+      STANDARD_MENU_BOX_CORNER_RADIUS + STANDARD_MENU_BOX_BORDER_WIDTH,
+      STANDARD_MENU_BOX_CORNER_RADIUS + STANDARD_MENU_BOX_BORDER_WIDTH,
+      STANDARD_MENU_BOX_CORNER_RADIUS);
 
   cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
   cairo_paint (cr);
@@ -319,7 +365,7 @@ create_standard_background (float r, float g, float b) {
   cairo_set_source_rgb (cr, 0, 0, 0);
   cairo_paint_with_alpha (cr, 0.4);
 
-  cairo_set_source_surface (cr, bg, 7, 7);
+  cairo_set_source_surface (cr, bg, STANDARD_MENU_BOX_X, STANDARD_MENU_BOX_Y);
   cairo_paint (cr);
   cairo_destroy (cr);
   cairo_pattern_destroy (linpat);
@@ -329,7 +375,7 @@ create_standard_background (float r, float g, float b) {
 }
 
 static void
-create_standard_menu (frontend *fe, const char *title)
+standard_menu_create (frontend *fe, const char *title)
 {
   cairo_surface_t *surface;
   cairo_surface_t *background, *selected_background, *disabled;
@@ -341,28 +387,41 @@ create_standard_menu (frontend *fe, const char *title)
   background = create_standard_background (0, 0, 0);
   selected_background = create_standard_background (0.05, 0.30, 0.60);
   disabled = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-      300 - 10 + 14, 40 + 14);
+      STANDARD_MENU_ITEM_BOX_WIDTH, STANDARD_MENU_ITEM_BOX_HEIGHT);
 
   cr = cairo_create (disabled);
 
   cairo_set_source_rgba (cr, 0.7, 0.7, 0.7, 0.7);
   cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-  clip_round_edge (cr, 300 - 10 + 14, 40 + 14, 14, 14, 7);
+  clip_round_edge (cr, STANDARD_MENU_ITEM_BOX_WIDTH,
+      STANDARD_MENU_ITEM_BOX_HEIGHT,
+      STANDARD_MENU_BOX_X + 7, STANDARD_MENU_BOX_Y + 7, 7);
   cairo_paint (cr);
 
   cairo_destroy (cr);
   cairo_surface_flush (disabled);
 
   surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      300 + 14, fe->height * 0.7);
+      STANDARD_MENU_WIDTH, STANDARD_MENU_HEIGHT);
   /* Infinite vertical scrollable menu */
   fe->menu.menu = ps3_menu_new_full (surface, -1, 1,
-      300 - 10 + 14, 40 + 14, 5, 6,
+      STANDARD_MENU_ITEM_BOX_WIDTH, STANDARD_MENU_ITEM_BOX_HEIGHT,
+      STANDARD_MENU_PAD_X, STANDARD_MENU_PAD_Y,
       background, selected_background, disabled);
   cairo_surface_destroy (surface);
   cairo_surface_destroy (background);
   cairo_surface_destroy (selected_background);
   cairo_surface_destroy (disabled);
+}
+
+static void
+standard_menu_add_item (frontend *fe, const char *title, int fontsize)
+{
+  int idx;
+
+  idx = ps3_menu_add_item (fe->menu.menu, title, fontsize);
+  fe->menu.menu->items[idx].ipad_x = STANDARD_MENU_ITEM_IPAD_X;
+  fe->menu.menu->items[idx].ipad_y = STANDARD_MENU_ITEM_IPAD_Y;
 }
 
 static void
@@ -441,10 +500,10 @@ create_main_menu (frontend * fe) {
   fe->menu.callback = main_menu_callback;
 
   /* Infinite vertical scrollable menu */
-  create_standard_menu (fe, "Main Menu");
+  standard_menu_create (fe, "Main Menu");
 
   for (i = 0; main_menu_items[i].title; i++) {
-    ps3_menu_add_item (fe->menu.menu, main_menu_items[i].title, 25);
+    standard_menu_add_item (fe, main_menu_items[i].title, MAIN_MENU_FONT_SIZE);
 
     if (main_menu_items[i].callback == _solve_game)
       fe->menu.menu->items[i].enabled = fe->thegame->can_solve;
@@ -481,7 +540,7 @@ create_types_menu (frontend * fe){
 
   fe->menu.callback = types_menu_callback;
 
-  create_standard_menu (fe, "Presets Menu");
+  standard_menu_create (fe, "Presets Menu");
   n = midend_num_presets(fe->me);
 
   if(n <= 0){ /* No types */
@@ -491,8 +550,9 @@ create_types_menu (frontend * fe){
     for(i = 0; i < n; i++){
       char* name;
       game_params *params;
+
       midend_fetch_preset(fe->me, i, &name, &params);
-      ps3_menu_add_item (fe->menu.menu, name, 20);
+      standard_menu_add_item (fe, name, TYPES_MENU_FONT_SIZE);
     }
   }
 }
