@@ -9,7 +9,7 @@
 
 #include "ps3graphics.h"
 #include "ps3save.h"
-#include <math.h>
+#include "cairo-utils.h"
 
 static void draw_background (frontend *fe, cairo_t *cr);
 static void draw_puzzle (frontend *fe, cairo_t *cr);
@@ -130,8 +130,7 @@ draw_puzzles_menu (frontend *fe, cairo_t *cr)
 
   ps3_menu_redraw (fe->menu.menu);
   surface = ps3_menu_get_surface (fe->menu.menu);
-  w = cairo_image_surface_get_width (surface);
-  h = cairo_image_surface_get_height (surface);
+  cairo_utils_get_surface_size (surface, &w, &h);
 
   cairo_set_source_surface (cr, surface, (fe->width - w) / 2,
       (fe->height - PUZZLE_MENU_DESCRIPTION_HEIGHT - h) / 2);
@@ -187,17 +186,6 @@ free_sgt_menu (frontend *fe)
   fe->menu.frame = NULL;
 }
 
-static void
-clip_round_edge (cairo_t *cr, int width, int height, int x, int y, int rad)
-{
-  cairo_new_path (cr);
-  cairo_arc (cr, x, y, rad, M_PI, -M_PI / 2);
-  cairo_arc (cr, width - x, y, rad, -M_PI / 2, 0);
-  cairo_arc (cr, width - x,  height - y, rad, 0, M_PI / 2);
-  cairo_arc (cr, x, height - y, rad, M_PI / 2, M_PI);
-  cairo_close_path (cr);
-  cairo_clip (cr);
-}
 
 #define STANDARD_MENU_ITEM_WIDTH 200
 #define STANDARD_MENU_ITEM_HEIGHT 25
@@ -256,8 +244,9 @@ create_standard_menu_frame (frontend *fe)
   fe->menu.frame = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
       width, height);
   cr = cairo_create (fe->menu.frame);
-  clip_round_edge (cr, width, height, STANDARD_MENU_FRAME_CORNER_RADIUS,
-      STANDARD_MENU_FRAME_CORNER_RADIUS, STANDARD_MENU_FRAME_CORNER_RADIUS);
+  cairo_utils_clip_round_edge (cr, width, height,
+      STANDARD_MENU_FRAME_CORNER_RADIUS, STANDARD_MENU_FRAME_CORNER_RADIUS,
+      STANDARD_MENU_FRAME_CORNER_RADIUS);
   linpat = cairo_pattern_create_linear (width, 0, width, height);
 
   cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.3, 0.3, 0.3);
@@ -274,7 +263,7 @@ create_standard_menu_frame (frontend *fe)
   cairo_pattern_add_color_stop_rgb (linpat, 0.5, 0.05, 0.20, 0.35);
   cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.06, 0.55, 0.75);
 
-  clip_round_edge (cr, width, height,
+  cairo_utils_clip_round_edge (cr, width, height,
       STANDARD_MENU_FRAME_CORNER_RADIUS + STANDARD_MENU_FRAME_BORDER_WIDTH,
       STANDARD_MENU_FRAME_CORNER_RADIUS + STANDARD_MENU_FRAME_BORDER_WIDTH,
       STANDARD_MENU_FRAME_CORNER_RADIUS);
@@ -309,8 +298,7 @@ draw_standard_menu (frontend *fe, cairo_t *cr)
     create_standard_menu_frame (fe);
   }
 
-  w = cairo_image_surface_get_width (fe->menu.frame);
-  h = cairo_image_surface_get_height (fe->menu.frame);
+  cairo_utils_get_surface_size (fe->menu.frame, &w, &h);
   surface = ps3_menu_get_surface (fe->menu.menu);
 
   ps3_menu_redraw (fe->menu.menu);
@@ -342,8 +330,9 @@ create_standard_background (float r, float g, float b) {
       STANDARD_MENU_ITEM_HEIGHT, r, g, b);
 
   cr = cairo_create (background);
-  clip_round_edge (cr, width, height, STANDARD_MENU_BOX_CORNER_RADIUS,
-      STANDARD_MENU_BOX_CORNER_RADIUS, STANDARD_MENU_BOX_CORNER_RADIUS);
+  cairo_utils_clip_round_edge (cr, width, height,
+      STANDARD_MENU_BOX_CORNER_RADIUS, STANDARD_MENU_BOX_CORNER_RADIUS,
+      STANDARD_MENU_BOX_CORNER_RADIUS);
 
   linpat = cairo_pattern_create_linear (width, 0, width, height);
 
@@ -353,7 +342,7 @@ create_standard_background (float r, float g, float b) {
   cairo_set_source (cr, linpat);
   cairo_paint_with_alpha (cr, 0.5);
 
-  clip_round_edge (cr, width, height,
+  cairo_utils_clip_round_edge (cr, width, height,
       STANDARD_MENU_BOX_CORNER_RADIUS + STANDARD_MENU_BOX_BORDER_WIDTH,
       STANDARD_MENU_BOX_CORNER_RADIUS + STANDARD_MENU_BOX_BORDER_WIDTH,
       STANDARD_MENU_BOX_CORNER_RADIUS);
@@ -393,8 +382,8 @@ standard_menu_create (frontend *fe, const char *title)
 
   cairo_set_source_rgba (cr, 0.7, 0.7, 0.7, 0.7);
   cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-  clip_round_edge (cr, STANDARD_MENU_ITEM_BOX_WIDTH,
-      STANDARD_MENU_ITEM_BOX_HEIGHT,
+  cairo_utils_clip_round_edge (cr,
+      STANDARD_MENU_ITEM_BOX_WIDTH, STANDARD_MENU_ITEM_BOX_HEIGHT,
       STANDARD_MENU_BOX_X + 7, STANDARD_MENU_BOX_Y + 7, 7);
   cairo_paint (cr);
 

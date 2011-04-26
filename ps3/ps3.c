@@ -26,6 +26,7 @@
 #include <sys/time.h>
 
 #include "ps3.h"
+#include "cairo-utils.h"
 #include "ps3save.h"
 #include "ps3drawingapi.h"
 #include "ps3graphics.h"
@@ -133,8 +134,9 @@ handle_pointer (frontend *fe, padData *paddata)
     fe->pointer_y += analog_v / 10;
 
     if (fe->image) {
-      int w = cairo_image_surface_get_width (fe->image);
-      int h = cairo_image_surface_get_height (fe->image);
+      int w, h;
+
+      cairo_utils_get_surface_size (fe->image, &w, &h);
 
       if (fe->pointer_x > w)
         fe->pointer_x = w;

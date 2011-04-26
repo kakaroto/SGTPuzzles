@@ -13,6 +13,7 @@
 #include <math.h>
 
 #include "ps3menu.h"
+#include "cairo-utils.h"
 
 static void
 _draw_text (Ps3Menu *menu, Ps3MenuItem *item, cairo_t *cr,
@@ -81,8 +82,8 @@ _draw_item (Ps3Menu *menu, Ps3MenuItem *item,
     bg = item->bg_image;
 
   cairo_save (cr);
-  cairo_scale (cr, (float) item->width / cairo_image_surface_get_width (bg),
-      (float) item->height / cairo_image_surface_get_height (bg));
+  cairo_scale (cr, (float) item->width / cairo_utils_get_surface_width (bg),
+      (float) item->height / cairo_utils_get_surface_height (bg));
   cairo_set_source_surface (cr, bg, x, y);
 
   /* Avoid getting the edge blended with 0 alpha */
@@ -101,14 +102,14 @@ _draw_item (Ps3Menu *menu, Ps3MenuItem *item,
     if (item->image_position == PS3_MENU_IMAGE_POSITION_BOTTOM)
       cairo_set_source_surface (cr, item->image,
           x + item->ipad_x, y + item->height - item->ipad_y -
-          cairo_image_surface_get_height (item->image));
+          cairo_utils_get_surface_height (item->image));
     else if (item->image_position == PS3_MENU_IMAGE_POSITION_TOP)
       cairo_set_source_surface (cr, item->image,
           x + item->ipad_x, y + item->ipad_y);
     else if (item->image_position == PS3_MENU_IMAGE_POSITION_RIGHT)
       cairo_set_source_surface (cr, item->image,
           x + item->width - item->ipad_x -
-          cairo_image_surface_get_width (item->image), y + item->ipad_y);
+          cairo_utils_get_surface_width (item->image), y + item->ipad_y);
     else
       cairo_set_source_surface (cr, item->image,
           x + item->ipad_x, y + item->ipad_y);
@@ -136,9 +137,7 @@ _load_image (cairo_surface_t *image, int size)
   cairo_t *cr = cairo_create (surface);
   int width, height;
 
-  width = cairo_image_surface_get_width (image);
-  height = cairo_image_surface_get_height (image);
-
+  cairo_utils_get_surface_size (image, &width, &height);
 
   cairo_scale (cr, (float) size / width, (float) size / width);
   cairo_set_source_surface (cr, image, 0, 0);
@@ -274,17 +273,9 @@ ps3_menu_create_default_background (int width, int height,
 
   cr = cairo_create (surface);
 
-  cairo_new_path (cr);
-  cairo_arc (cr, BUTTON_ARC_PAD_X, BUTTON_ARC_PAD_Y,
-      BUTTON_ARC_RADIUS, M_PI, -M_PI / 2);
-  cairo_arc (cr, width - BUTTON_ARC_PAD_X, BUTTON_ARC_PAD_Y,
-      BUTTON_ARC_RADIUS, -M_PI / 2, 0);
-  cairo_arc (cr, width - BUTTON_ARC_PAD_X,  height - BUTTON_ARC_PAD_Y,
-      BUTTON_ARC_RADIUS, 0, M_PI / 2);
-  cairo_arc (cr, BUTTON_ARC_PAD_X, height - BUTTON_ARC_PAD_Y,
-      BUTTON_ARC_RADIUS, M_PI / 2, M_PI);
-  cairo_close_path (cr);
-  cairo_clip (cr);
+  cairo_utils_clip_round_edge (cr, width, height,
+      BUTTON_ARC_PAD_X, BUTTON_ARC_PAD_Y,
+      BUTTON_ARC_RADIUS);
 
   cairo_set_source (cr, linpat);
   cairo_paint (cr);
@@ -484,8 +475,7 @@ _handle_input_internal (Ps3Menu *menu, Ps3MenuInput input,
   int column, new_column, start_column, max_columns, max_visible_columns;
   int width, height;
 
-  width = cairo_image_surface_get_width (menu->surface);
-  height = cairo_image_surface_get_height (menu->surface);
+  cairo_utils_get_surface_size (menu->surface, &width, &height);
 
   /* TODO: Actually walk the items and calculate the real value depending on
      individual item's width/height */
@@ -605,8 +595,7 @@ _handle_input_internal (Ps3Menu *menu, Ps3MenuInput input,
 
     bbox->x = 0;
     bbox->y = 0;
-    bbox->width = cairo_image_surface_get_width (menu->surface);
-    bbox->height = cairo_image_surface_get_height (menu->surface);
+    cairo_utils_get_surface_size (menu->surface, &bbox->width, &bbox->height);
   } else if (((new_row - start_row) >= max_visible_rows) ||
       ((new_column - start_column) >= max_visible_columns)) {
     /* We go right/down to a hidden item */
@@ -627,16 +616,14 @@ _handle_input_internal (Ps3Menu *menu, Ps3MenuInput input,
 
     bbox->x = 0;
     bbox->y = 0;
-    bbox->width = cairo_image_surface_get_width (menu->surface);
-    bbox->height = cairo_image_surface_get_height (menu->surface);
+    cairo_utils_get_surface_size (menu->surface, &bbox->width, &bbox->height);
   } else {
     /* TODO: Only redraw the part that we need, and set the right bbox */
     ps3_menu_redraw (menu);
 
     bbox->x = 0;
     bbox->y = 0;
-    bbox->width = cairo_image_surface_get_width (menu->surface);
-    bbox->height = cairo_image_surface_get_height (menu->surface);
+    cairo_utils_get_surface_size (menu->surface, &bbox->width, &bbox->height);
   }
 
   return menu->selection;
@@ -672,8 +659,7 @@ ps3_menu_handle_input (Ps3Menu *menu, Ps3MenuInput input,
 
     bbox->x = 0;
     bbox->y = 0;
-    bbox->width = cairo_image_surface_get_width (menu->surface);
-    bbox->height = cairo_image_surface_get_height (menu->surface);
+    cairo_utils_get_surface_size (menu->surface, &bbox->width, &bbox->height);
   }
 
   return new_selection;
@@ -706,8 +692,7 @@ ps3_menu_redraw (Ps3Menu *menu)
   cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
   cairo_restore (cr);
 
-  width = cairo_image_surface_get_width (menu->surface);
-  height = cairo_image_surface_get_height (menu->surface);
+  cairo_utils_get_surface_size (menu->surface, &width, &height);
 
   /* Define which row/column we're drawing if we're scrolled */
   if (menu->columns != -1) {
