@@ -366,8 +366,10 @@ saveload_game_thread(void *user_data)
 
   printf ("saveload_thread started\n");
 
-  strncpy (prefix, "SGTPUZZLES-", SYS_SAVE_MAX_DIRECTORY_NAME);
-  strncat (prefix, gamelist_names[fe->game_idx], SYS_SAVE_MAX_DIRECTORY_NAME);
+  snprintf (prefix, SYS_SAVE_MAX_DIRECTORY_NAME, "SGTPUZZLES-%s",
+      gamelist_names[fe->game_idx]);
+
+  /* Filename must be upper case, so let's uppercase it */
   while (*ptr != 0) {
     *ptr = islower ((int)*ptr) ? *ptr - 'a' + 'A' : *ptr;
     ptr++;
