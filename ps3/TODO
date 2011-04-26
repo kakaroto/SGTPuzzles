@@ -1,7 +1,16 @@
-- Add a 'resize screen' at boot (some tvs crop the left size of the screen)
-- Redo a cleaner design of the user interface
+High priority :
 - Add an about page
 - Add man pages/Help section for each game
 - Fix performance issues, need 30/60 fps on full redrawns on 1080p now it's around 1 or 2 fps...
-- Make the ingame menus smaller and clean the code
+- Add a way to enter numbers/letters for Solo/Unequal games
+- Fix drawing when we close the ingame XMB
+
+Medium priority :
+- Add a 'resize screen' at boot (some tvs crop the left size of the screen)
+- Redo a cleaner design of the user interface
+- Recognize when a game is completed and show a message+play sound.
+- Check if a game is solved and allow easy 'new game'
+
+Low priority :
+- the save/load thread seems to crash (get interrupted) if we do a quit from the xmb while the save/load menu is open
 
