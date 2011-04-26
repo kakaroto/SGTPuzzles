@@ -228,6 +228,7 @@ create_standard_menu_frame (frontend *fe)
   cairo_font_extents_t fex;
   cairo_text_extents_t tex;
   cairo_pattern_t *linpat = NULL;
+  cairo_surface_t *frame = NULL;
   int width, height;
   cairo_t *cr;
   int x, y;
@@ -241,9 +242,9 @@ create_standard_menu_frame (frontend *fe)
     height = STANDARD_MENU_HEIGHT;
   height += STANDARD_MENU_FRAME_HEIGHT;
 
-  fe->menu.frame = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
+  frame = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
       width, height);
-  cr = cairo_create (fe->menu.frame);
+  cr = cairo_create (frame);
   cairo_utils_clip_round_edge (cr, width, height,
       STANDARD_MENU_FRAME_CORNER_RADIUS, STANDARD_MENU_FRAME_CORNER_RADIUS,
       STANDARD_MENU_FRAME_CORNER_RADIUS);
@@ -286,6 +287,10 @@ create_standard_menu_frame (frontend *fe)
   cairo_set_source_rgb (cr, 0.0, 0.3, 0.5);
   cairo_show_text (cr, fe->menu.title);
   cairo_destroy (cr);
+
+  /* Create the frame with a dropshadow */
+  fe->menu.frame = cairo_utils_surface_add_dropshadow (frame, 5);
+  cairo_surface_destroy (frame);
 }
 
 static void
