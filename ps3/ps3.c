@@ -544,20 +544,9 @@ main_loop_iterate (frontend *fe)
    * It seems the XMB needs to get our buffers so it can overlay itself on top.
    * If we stop flipping buffers, the xmb will freeze.
    */
-  if (fe->xmb.opened || fe->xmb.drawing) {
-    /* TODO: Once performance is fixed, only set redraw to TRUE */
-    rsxBuffer *buffer = &fe->buffers[fe->currentBuffer];
+  if (fe->xmb.opened || fe->xmb.drawing)
+    fe->redraw = TRUE;
 
-    setRenderTarget(fe->context, buffer);
-    /* Wait for the last flip to finish, so we can draw to the old buffer */
-    waitFlip ();
-    memset (buffer->ptr, 0, buffer->height * buffer->width * 4);
-    /* Flip buffer onto screen */
-    flipBuffer (fe->context, fe->currentBuffer);
-    fe->currentBuffer++;
-    if (fe->currentBuffer >= MAX_BUFFERS)
-      fe->currentBuffer = 0;
-  }
   if (fe->xmb.closed > 0) {
     fe->xmb.closed--;
     fe->redraw = TRUE;
