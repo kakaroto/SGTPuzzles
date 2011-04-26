@@ -703,6 +703,7 @@ ps3_menu_redraw (Ps3Menu *menu)
   cairo_save (cr);
   cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
   cairo_paint (cr);
+  cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
   cairo_restore (cr);
 
   width = cairo_image_surface_get_width (menu->surface);
