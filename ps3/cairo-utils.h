@@ -74,4 +74,34 @@ int cairo_utils_get_surface_height (cairo_surface_t *surface);
 void cairo_utils_clip_round_edge (cairo_t *cr,
     int width, int height, int x, int y, int rad);
 
+/**
+ * cairo_utils_image_surface_blur:
+ * @surface: The Image Surface to blur
+ * @radius: The blur radius
+ *
+ * This function will blur a surface using a Gaussian blur method.
+ * It only works on image surfaces, and it will also skip the first @radius pixels
+ * on the four sides of the surface.
+ *
+ * <para>
+ * This function was generously released to the public domain by Steve Hanov.
+ * </para>
+ */
+void cairo_utils_image_surface_blur (cairo_surface_t* surface, double radius);
+
+/**
+ * cairo_utils_surface_add_dropshadow:
+ * @surace: The surface to which to add the dropshadow
+ * @radius: The radius of the blur and dropshadow
+ *
+ * This will create a shadow image of the surface, blur it, then add it as a
+ * dropshadow to the existing image. It will then overlay the existing image on top
+ * of the shadow and return it.
+ *
+ * Returns: A new surface containing the data from @surface with a dropshadow of
+ * @radius pixels added to it.
+ */
+cairo_surface_t *cairo_utils_surface_add_dropshadow (cairo_surface_t *surface,
+    int radius);
+
 #endif /* __CAIRO_UTILS_H__ */
