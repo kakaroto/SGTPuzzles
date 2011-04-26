@@ -239,6 +239,7 @@ struct _Ps3MenuItem {
  * @default_item_height: The default height of each menu item
  * @pad_x: The horizontal padding between items
  * @pad_y: The vertical padding between items
+ * @dropshadow_radius: The radius for a dropshadow to apply to all items. 0 for none.
  * @bg_image: The default background image for non selected items
  * @bg_sel_image: The default background image for selected items
  * @disabled_image: An image to overlay on top of disabled items
@@ -246,6 +247,7 @@ struct _Ps3MenuItem {
  * @items: The items in the menu
  * @selection: Currently selected item index
  * @start_item: The first item to be drawn (!= 0 if scrolled)
+ * @dropshadow: A surface with the dropshadow to apply to all items.
  */
 struct _Ps3Menu {
   cairo_surface_t *surface;
@@ -255,6 +257,7 @@ struct _Ps3Menu {
   int default_item_height;
   int pad_x;
   int pad_y;
+  int dropshadow_radius;
   cairo_surface_t *bg_image;
   cairo_surface_t *bg_sel_image;
   cairo_surface_t *disabled_image;
@@ -263,6 +266,7 @@ struct _Ps3Menu {
   Ps3MenuItem *items;
   int selection;
   int start_item;
+  cairo_surface_t *dropshadow;
 };
 
 /**
@@ -307,6 +311,7 @@ Ps3Menu *ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
  * @default_item_height: The default height of each menu item
  * @pad_x: The horizontal padding between items
  * @pad_y: The vertical padding between items
+ * @dropshadow_radius: The radius for a dropshadow to add to the menus.
  * @bg_image: The default background image for non selected items
  * @bg_sel_image: The default background image for selected items
  * @disabled_overlay: An image to overlay on top of disabled items
@@ -314,6 +319,10 @@ Ps3Menu *ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
  * Create a new #Ps3Menu with all settings specified. This is a more complete
  * version of ps3_menu_new() that allows you to specify each parameter for
  * an increased sense of customization.
+ * Specifying 0 for the dropshadow radius means that it will be disabled. Note that
+ * the dropshadow will be unique and applied to all items, so the form and the size
+ * of the @bg_image and @bg_sel_image as well as each item's sizes must be the same
+ * otherwise the result is to be unexpected behavior.
  * If @bg_image, @bg_sel_image, or @disabled_overlay are #NULL, then the default
  * will be used.
  *
@@ -321,8 +330,8 @@ Ps3Menu *ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
  */
 Ps3Menu *ps3_menu_new_full (cairo_surface_t *surface, int rows, int columns,
     int default_item_width, int default_item_height, int pad_x, int pad_y,
-    cairo_surface_t *bg_image, cairo_surface_t *bg_sel_image,
-    cairo_surface_t *disabled_overlay);
+    int dropshadow_radius, cairo_surface_t *bg_image,
+    cairo_surface_t *bg_sel_image, cairo_surface_t *disabled_overlay);
 
 /**
  * ps3_menu_add_item:

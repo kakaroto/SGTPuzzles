@@ -320,8 +320,8 @@ _create_disabled_overlay (Ps3Menu *menu, int width, int height)
 Ps3Menu *
 ps3_menu_new_full (cairo_surface_t *surface, int rows, int columns,
     int default_item_width, int default_item_height, int pad_x, int pad_y,
-    cairo_surface_t *bg_image, cairo_surface_t *bg_sel_image,
-    cairo_surface_t *disabled_overlay)
+    int dropshadow_radius, cairo_surface_t *bg_image,
+    cairo_surface_t *bg_sel_image, cairo_surface_t *disabled_overlay)
 {
   Ps3Menu *menu = NULL;
 
@@ -343,6 +343,7 @@ ps3_menu_new_full (cairo_surface_t *surface, int rows, int columns,
   menu->default_item_height = default_item_height;
   menu->pad_x = pad_x;
   menu->pad_y = pad_y;
+  menu->dropshadow_radius = dropshadow_radius;
   menu->nitems = 0;
   menu->items = NULL;
   menu->selection = 0; /* Select the first item by default */
@@ -366,6 +367,21 @@ ps3_menu_new_full (cairo_surface_t *surface, int rows, int columns,
     menu->disabled_image = _create_disabled_overlay (menu,
         menu->default_item_width, menu->default_item_height);
 
+  if (dropshadow_radius) {
+    cairo_t *cr;
+
+    menu->dropshadow = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
+        menu->default_item_width + (4 * dropshadow_radius),
+        menu->default_item_height + (4 * dropshadow_radius));
+    cr = cairo_create (menu->dropshadow);
+    cairo_set_source_rgb (cr, 0, 0, 0);
+    cairo_mask_surface (cr, menu->bg_image, dropshadow_radius * 2,
+        dropshadow_radius * 2);
+    cairo_destroy (cr);
+
+    cairo_utils_image_surface_blur (menu->dropshadow, dropshadow_radius);
+  }
+
   return menu;
 }
 
@@ -375,7 +391,7 @@ ps3_menu_new (cairo_surface_t *surface, int rows, int columns,
 {
   return ps3_menu_new_full (surface, rows, columns,
       default_item_width, default_item_height,
-      PS3_MENU_DEFAULT_PAD_X, PS3_MENU_DEFAULT_PAD_Y,
+      PS3_MENU_DEFAULT_PAD_X, PS3_MENU_DEFAULT_PAD_Y, 0,
       NULL, NULL, NULL);
 }
 
@@ -711,11 +727,17 @@ ps3_menu_redraw (Ps3Menu *menu)
 
     x += menu->pad_x;
     y += menu->pad_y;
-    cairo_rectangle (cr, x, y, item->width, item->height);
-    cairo_clip (cr);
 
     /* No need to draw the items that are outside the visible area */
     if (x < width && y < height) {
+      if (menu->dropshadow) {
+        cairo_set_source_surface (cr, menu->dropshadow,
+            x - ((menu->dropshadow_radius * 2) - menu->dropshadow_radius),
+            y - ((menu->dropshadow_radius * 2) - menu->dropshadow_radius));
+        cairo_paint (cr);
+      }
+      cairo_rectangle (cr, x, y, item->width, item->height);
+      cairo_clip (cr);
       item->draw_cb (menu, item, (menu->selection == item->index), cr,
           x, y, item->draw_data);
     }
@@ -787,5 +809,7 @@ ps3_menu_free (Ps3Menu *menu)
     cairo_surface_destroy (menu->bg_sel_image);
   if (menu->disabled_image)
     cairo_surface_destroy (menu->disabled_image);
+  if (menu->dropshadow)
+    cairo_surface_destroy (menu->dropshadow);
   free (menu);
 }

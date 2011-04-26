@@ -400,7 +400,7 @@ standard_menu_create (frontend *fe, const char *title)
   /* Infinite vertical scrollable menu */
   fe->menu.menu = ps3_menu_new_full (surface, -1, 1,
       STANDARD_MENU_ITEM_BOX_WIDTH, STANDARD_MENU_ITEM_BOX_HEIGHT,
-      STANDARD_MENU_PAD_X, STANDARD_MENU_PAD_Y,
+      STANDARD_MENU_PAD_X, STANDARD_MENU_PAD_Y, 0,
       background, selected_background, disabled);
   cairo_surface_destroy (surface);
   cairo_surface_destroy (background);
@@ -580,7 +580,7 @@ create_puzzles_menu (frontend * fe) {
 
   /* Infinite vertical scrollable menu */
   fe->menu.menu = ps3_menu_new_full (surface, -1, 4,
-      (width / 4) - (2 * 20), 150, 20, 5, NULL, NULL, NULL);
+      (width / 4) - (2 * 20), 150, 20, 5, 3, NULL, NULL, NULL);
   cairo_surface_destroy (surface);
 
   for (i = 0; i < gamecount; i++) {
