@@ -484,7 +484,9 @@ event_handler (u64 status, u64 param, void * user_data)
     xmb->closed = 0;
   } else if (status == SYSUTIL_MENU_CLOSE) {
     xmb->opened = 0;
-    xmb->closed = 1;
+    /* After we get closed, we must redraw a few times for the xmb's animation
+     * to finish and get back our normal image */
+    xmb->closed = 10;
   } else if (status == SYSUTIL_DRAW_BEGIN) {
     xmb->drawing = 1;
   } else if (status == SYSUTIL_DRAW_END) {
@@ -556,8 +558,8 @@ main_loop_iterate (frontend *fe)
     if (fe->currentBuffer >= MAX_BUFFERS)
       fe->currentBuffer = 0;
   }
-  if (fe->xmb.closed) {
-    fe->xmb.closed = 0;
+  if (fe->xmb.closed > 0) {
+    fe->xmb.closed--;
     fe->redraw = TRUE;
   }
   if ((fe->save_data.saving || fe->save_data.loading) &&
