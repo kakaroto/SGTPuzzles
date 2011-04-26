@@ -144,31 +144,32 @@ cairo_utils_surface_add_dropshadow (cairo_surface_t *surface, int radius)
   /* The image_surface_blue will ignore radius pixels on each sides, so
    * if we want to blur the whole thing we need to move it by 2*radius inside
    * the surface.. but since the blur will 'overflow' outside the border, with a
-   * maximum of radius pixels on each side, so to hold the surface once blured,
-   * we need 4*radius added to width and height, then place the surface at
-   * an offset of 2*radius on x and y, then blur it by radius.
+   * maximum of 2*radius pixels on each side, so to hold the surface once blured
+   * we need 6*radius added to width and height, then place the surface at
+   * an offset of 3*radius on x and y (to skip the ignored radius border, and
+   * to give enough space for the 2*radius blurring overflow), then we blur the
+   * surface using the supplied radius.
    */
   cairo_utils_get_surface_size (surface, &width, &height);
 
   shadow = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      width + (radius * 4), height + (radius * 4));
+      width + (radius * 6), height + (radius * 6));
   cr = cairo_create (shadow);
   cairo_set_source_rgb (cr, 0, 0, 0);
-  cairo_mask_surface (cr, surface, radius * 2, radius * 2);
+  cairo_mask_surface (cr, surface, radius * 3, radius * 3);
   cairo_destroy (cr);
 
   cairo_utils_image_surface_blur (shadow, radius);
 
   /* We blur by radius pixels and put the dropshadow there, but the blur will
-   * overflow so we make the new surface have radius*2 more pixels on width and
-   * height. Then we place the shadow at position (radius,radius) after moving
+   * overflow so we make the new surface have radius*2 more pixels on each side
+   * Then we place the shadow at position (2*radius,2*radius) after moving
    * the previous surface back to (0,0).
    */
   result = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-      width + (radius *2), height + (radius * 2));
+      width + (radius * 4), height + (radius * 4));
   cr = cairo_create (result);
-  cairo_set_source_surface (cr, shadow, -((radius * 2) - radius),
-      -((radius * 2) - radius));
+  cairo_set_source_surface (cr, shadow, -radius, -radius);
   cairo_paint (cr);
   cairo_set_source_surface (cr, surface, 0, 0);
   cairo_paint (cr);

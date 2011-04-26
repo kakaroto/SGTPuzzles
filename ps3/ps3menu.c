@@ -371,12 +371,12 @@ ps3_menu_new_full (cairo_surface_t *surface, int rows, int columns,
     cairo_t *cr;
 
     menu->dropshadow = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
-        menu->default_item_width + (4 * dropshadow_radius),
-        menu->default_item_height + (4 * dropshadow_radius));
+        menu->default_item_width + (6 * dropshadow_radius),
+        menu->default_item_height + (6 * dropshadow_radius));
     cr = cairo_create (menu->dropshadow);
     cairo_set_source_rgb (cr, 0, 0, 0);
-    cairo_mask_surface (cr, menu->bg_image, dropshadow_radius * 2,
-        dropshadow_radius * 2);
+    cairo_mask_surface (cr, menu->bg_image, dropshadow_radius * 3,
+        dropshadow_radius * 3);
     cairo_destroy (cr);
 
     cairo_utils_image_surface_blur (menu->dropshadow, dropshadow_radius);
@@ -732,8 +732,7 @@ ps3_menu_redraw (Ps3Menu *menu)
     if (x < width && y < height) {
       if (menu->dropshadow) {
         cairo_set_source_surface (cr, menu->dropshadow,
-            x - ((menu->dropshadow_radius * 2) - menu->dropshadow_radius),
-            y - ((menu->dropshadow_radius * 2) - menu->dropshadow_radius));
+            x - menu->dropshadow_radius, y - menu->dropshadow_radius);
         cairo_paint (cr);
       }
       cairo_rectangle (cr, x, y, item->width, item->height);

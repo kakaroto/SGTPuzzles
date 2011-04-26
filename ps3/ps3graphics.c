@@ -289,7 +289,7 @@ create_standard_menu_frame (frontend *fe)
   cairo_destroy (cr);
 
   /* Create the frame with a dropshadow */
-  fe->menu.frame = cairo_utils_surface_add_dropshadow (frame, 5);
+  fe->menu.frame = cairo_utils_surface_add_dropshadow (frame, 3);
   cairo_surface_destroy (frame);
 }
 
