@@ -11,7 +11,6 @@
 #include "ps3.h"
 
 #include <sys/thread.h>
-#include <sys/memory.h>
 #include <sysutil/save.h>
 #include <string.h>
 #include <stdio.h>
@@ -354,7 +353,7 @@ saveload_game_thread(void *user_data)
   frontend *fe = user_data;
   sysSaveListSettings listSettings;
   sysSaveBufferSettings bufferSettings;
-  mem_container_t container;
+  sys_mem_container_t container;
   char *prefix = fe->save_data.prefix;
   char *ptr = prefix;
   char filename[256];
