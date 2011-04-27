@@ -188,8 +188,8 @@ free_sgt_menu (frontend *fe)
 
 
 #define STANDARD_MENU_ITEM_WIDTH 200
-#define STANDARD_MENU_ITEM_HEIGHT 25
-#define STANDARD_MENU_PAD_X 5
+#define STANDARD_MENU_ITEM_HEIGHT 26
+#define STANDARD_MENU_PAD_X 10
 #define STANDARD_MENU_PAD_Y 6
 #define STANDARD_MENU_BOX_X 7
 #define STANDARD_MENU_BOX_Y 7
@@ -298,6 +298,8 @@ draw_standard_menu (frontend *fe, cairo_t *cr)
 {
   cairo_surface_t *surface;
   int w, h;
+  int menu_width;
+  int menu_height;
 
   if (fe->menu.frame == NULL) {
     create_standard_menu_frame (fe);
@@ -311,10 +313,26 @@ draw_standard_menu (frontend *fe, cairo_t *cr)
   cairo_set_source_surface (cr, fe->menu.frame, (fe->width - w) / 2,
       (fe->height - h) / 2);
   cairo_paint (cr);
-  cairo_set_source_surface (cr, surface,
-      ((fe->width - w) / 2) + STANDARD_MENU_FRAME_SIDE,
+
+  /* Draw a frame around the menu so cut off buttons don't appear clippped */
+
+  menu_width = STANDARD_MENU_WIDTH;
+  menu_height = fe->menu.menu->nitems * STANDARD_MENU_ITEM_TOTAL_HEIGHT;
+
+  if (menu_height > STANDARD_MENU_HEIGHT)
+    menu_height = STANDARD_MENU_HEIGHT;
+
+  cairo_save (cr);
+  cairo_translate (cr, ((fe->width - w) / 2) + STANDARD_MENU_FRAME_SIDE,
       ((fe->height - h) / 2) + STANDARD_MENU_FRAME_TOP);
+  cairo_utils_clip_round_edge (cr, menu_width, menu_height, 20, 20, 20);
+  cairo_set_source_rgb (cr, 0, 0, 0);
+  cairo_paint_with_alpha (cr, 0.5);
+
+  cairo_set_source_surface (cr, surface, 0, 0);
   cairo_paint (cr);
+  cairo_restore (cr);
+
   cairo_surface_destroy (surface);
 }
 
