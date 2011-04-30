@@ -259,12 +259,12 @@ handle_pad (frontend *fe, padData *paddata)
   /* Store previous key to avoid flooding the same keypress */
   prev_keyval = keyval;
 
-  if (fe->help != NULL ) {
+  if (fe->help != NULL) {
     if (keyval == CURSOR_UP) {
       if (fe->help->start_line > 0)
         fe->help->start_line--;
     } else if(keyval == CURSOR_DOWN) {
-      if (fe->help->start_line < fe->help->nlines - 1)
+      if (fe->help->start_line < (fe->help->nlines - 20))
         fe->help->start_line++;
     } if (paddata->BTN_START || paddata->BTN_CIRCLE) {
       /* Exiting help */
