@@ -259,19 +259,16 @@ handle_pad (frontend *fe, padData *paddata)
   /* Store previous key to avoid flooding the same keypress */
   prev_keyval = keyval;
 
-
-  if(fe->help != NULL ) {
-    if(keyval == CURSOR_UP) {
-      if(fe->help->line_offset > 0 ) fe->help->line_offset--;
-    }
-    if(keyval == CURSOR_DOWN) {
-      /* TODO : Limit scrooling. */
-      fe->help->line_offset++;
-    }
-    if (paddata->BTN_START || paddata->BTN_CIRCLE) { /* Exiting help */
-      free(fe->help->text);
-      free(fe->help);
-      fe->help = NULL;
+  if (fe->help != NULL ) {
+    if (keyval == CURSOR_UP) {
+      if (fe->help->start_line > 0)
+        fe->help->start_line--;
+    } else if(keyval == CURSOR_DOWN) {
+      if (fe->help->start_line < fe->help->nlines - 1)
+        fe->help->start_line++;
+    } if (paddata->BTN_START || paddata->BTN_CIRCLE) {
+      /* Exiting help */
+      free_help (fe);
     }
     fe->redraw = TRUE;
   }
@@ -483,6 +480,8 @@ destroy_window (frontend *fe)
   free (fe->host_addr);
 
   free_sgt_menu (fe);
+
+  free_help (fe);
 
   sfree (fe);
 }

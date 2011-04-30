@@ -102,8 +102,9 @@ typedef struct {
 } SGTPuzzlesMenu;
 
 typedef struct {
-  char *text;
-  int line_offset;
+  int nlines;
+  char **lines;
+  int start_line;
 } PuzzleHelp;
 
 struct frontend {

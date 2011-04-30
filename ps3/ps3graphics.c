@@ -346,10 +346,10 @@ draw_help (frontend *fe, cairo_t *cr)
 {
   double x = 5;
   double y = 5;
-  double width = fe->width * 0.7;
-  double height = fe->height * 0.7;
-  char *temp;
-  int cnt = fe->help->line_offset;
+  double width = fe->width * 0.8;
+  double height = fe->height * 0.8;
+  char **line;
+  int cnt = fe->help->start_line;
 
 
   cairo_utils_path_round_edge (cr, width, height, 20, 20, 20);
@@ -365,14 +365,11 @@ draw_help (frontend *fe, cairo_t *cr)
   x = 10;
   y = 10;
 
-  temp = strtok (fe->help->text, "\n");
-  while (y < height) {
-    temp = strtok (NULL, "\n");
-    if (temp == NULL)
-      break;
-
+  line = fe->help->lines;
+  while (*line != NULL && y < height) {
     if (cnt > 0) {
       cnt--;
+      line++;
       continue;
     }
 
@@ -387,10 +384,11 @@ draw_help (frontend *fe, cairo_t *cr)
     cairo_set_font_size (cr, 15);
 
     cairo_set_source_rgb (cr, 0, 0,  0);
-    cairo_move_to (cr, x, y);
-    cairo_show_text (cr, temp);
+    cairo_move_to (cr, x, y + 13);
+    cairo_show_text (cr, *line);
     cairo_restore (cr);
     y += 20;
+    line++;
   }
 
 }
@@ -539,29 +537,76 @@ _change_game (frontend *fe)
 }
 
 
+void
+free_help (frontend *fe)
+{
+  if (fe->help != NULL) {
+    if (fe->help->lines[0] != NULL)
+      free (fe->help->lines[0]);
+
+    free (fe->help->lines);
+    free (fe->help);
+
+    fe->help = NULL;
+  }
+}
+
 static void
 _help_game (frontend *fe)
 {
  char filename[255];
- FILE* fd;
+ char *text = NULL;
+ char *ptr;
+ FILE* fd = NULL;
  int filesize;
+ int lines;
+
+ if (fe->help != NULL) {
+   free (fe->help->lines);
+   free (fe->help);
+   fe->help = NULL;
+ }
 
  /* Read help file text */
  snprintf (filename, 255, "%s/data/help/%s.txt",
      cwd, gamelist_names[fe->game_idx]);
+
  fd = fopen(filename,"r");
  if (fd != NULL) {
    fe->help = (PuzzleHelp*) malloc (sizeof(PuzzleHelp));
-   fe->help->line_offset = 0;
+   fe->help->start_line = 0;
 
    fseek(fd, 0, SEEK_END);
    filesize = ftell(fd);
    fseek(fd, 0, SEEK_SET);
 
-   fe->help->text = (char*) malloc(filesize);
-   fread(fe->help->text, 1, filesize, fd);
+   text = (char*) malloc(filesize);
+   fread(text, 1, filesize, fd);
 
    fclose(fd);
+
+   lines = 0;
+   ptr = text;
+   while (*ptr != 0) {
+     if (*ptr++ == '\n')
+       lines++;
+   }
+   /* Last line */
+   lines++;
+
+   fe->help->lines = malloc ((lines + 1) * sizeof(char *));
+   fe->help->nlines = 0;
+   ptr = text;
+   while (*ptr != 0) {
+     fe->help->lines[fe->help->nlines++] = ptr;
+
+     while (*ptr != 0 && *ptr != '\n')
+       ptr++;
+     if (*ptr == '\n')
+       *ptr++ = 0;
+     DEBUG ("Found Help line : %s\n", fe->help->lines[fe->help->nlines-1]);
+   }
+   fe->help->lines[fe->help->nlines] = NULL;
  }
  fe->redraw = TRUE;
 }
