@@ -1,48 +1,54 @@
 Cube
-       This is another one I originally saw as a web game. This one was a Java
-       game  [2],  by  Paul Scott. You have a grid of 16 squares, six of which
-       are blue; on one square rests a cube. Your move is  to  use  the  arrow
-       keys  to  roll the cube through 90 degrees so that it moves to an adja‐
-       cent square. If you roll the cube on to a blue square, the blue  square
-       is  picked  up  on one face of the cube; if you roll a blue face of the
-       cube on to a non-blue square, the blueness is put down again. (In  gen‐
-       eral,  whenever you roll the cube, the two faces that come into contact
-       swap colours.) Your job is to get all six blue squares on  to  the  six
-       faces  of  the cube at the same time. Count your moves and try to do it
-       in as few as possible.
+       This  is  another  one I originally saw as a web game. This
+       one was a Java game [2], by Paul Scott. You have a grid  of
+       16  squares,  six  of which are blue; on one square rests a
+       cube. Your move is to use the arrow keys to roll  the  cube
+       through  90 degrees so that it moves to an adjacent square.
+       If you roll the cube on to a blue square, the  blue  square
+       is  picked  up  on one face of the cube; if you roll a blue
+       face of the cube on to a non-blue square, the  blueness  is
+       put  down  again.  (In general, whenever you roll the cube,
+       the two faces that come into contact  swap  colours.)  Your
+       job  is  to get all six blue squares on to the six faces of
+       the cube at the same time. Count your moves and try  to  do
+       it in as few as possible.
 
-       Unlike the original Java game, my version has  an  additional  feature:
-       once you've mastered the game with a cube rolling on a square grid, you
-       can change to a triangular grid and roll any of a tetrahedron, an octa‐
-       hedron or an icosahedron.
+       Unlike the original Java game, my version has an additional
+       feature: once you've mastered the game with a cube  rolling
+       on  a  square grid, you can change to a triangular grid and
+       roll any of a tetrahedron, an octahedron or an icosahedron.
 
        [2]    http://www3.sympatico.ca/paulscott/cube/cube.htm
 
    Cube controls
-       This game can be played with either the keyboard or the mouse.
+       This game can be played with either  the  keyboard  or  the
+       mouse.
 
-       Left-clicking  anywhere  on  the  window  will  move the cube (or other
-       solid) towards the mouse pointer.
+       Left-clicking anywhere on the window will move the cube (or
+       other solid) towards the mouse pointer.
 
-       The arrow keys can also used to roll the cube on its square grid in the
-       four cardinal directions. On the triangular grids, the mapping of arrow
-       keys to directions is more approximate. Vertical movement is disallowed
-       where  it  doesn't make sense. The four keys surrounding the arrow keys
-       on the numeric keypad (`7', `9', `1', `3') can  be  used  for  diagonal
-       movement.
+       The arrow keys can also used to roll the cube on its square
+       grid  in  the  four  cardinal directions. On the triangular
+       grids, the mapping of arrow  keys  to  directions  is  more
+       approximate.  Vertical  movement  is  disallowed  where  it
+       doesn't make sense. The four  keys  surrounding  the  arrow
+       keys on the numeric keypad (`7', `9', `1', `3') can be used
+       for diagonal movement.
 
-       (All the actions described in section 2.1 are also available.)
+       (All the actions described in section 2.1 are  also  avail‐
+       able.)
 
    Cube parameters
-       These  parameters  are  available  from  the  `Custom...' option on the
-       `Type' menu.
+       These  parameters are available from the `Custom...' option
+       on the `Type' menu.
 
        Type of solid
-              Selects the solid to roll (and hence the  shape  of  the  grid):
-              tetrahedron, cube, octahedron, or icosahedron.
+              Selects the solid to roll (and hence  the  shape  of
+              the  grid): tetrahedron, cube, octahedron, or icosa‐
+              hedron.
 
        Width / top, Height / bottom
-              On  a square grid, horizontal and vertical dimensions. On a tri‐
-              angular grid, the number of triangles on the top and bottom rows
-              respectively.
+              On a square grid,  horizontal  and  vertical  dimen‐
+              sions. On a triangular grid, the number of triangles
+              on the top and bottom rows respectively.
 

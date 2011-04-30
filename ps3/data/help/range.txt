@@ -1,47 +1,55 @@
 Range
-       You  have  a grid of squares; some squares contain numbers. Your job is
-       to colour some of the squares black, such  that  several  criteria  are
-       satisfied:
+       You  have  a grid of squares; some squares contain numbers.
+       Your job is to colour some of the squares black, such  that
+       several criteria are satisfied:
 
        ·      no square with a number is coloured black.
 
-       ·      no two black squares are adjacent (horizontally or vertically).
+       ·      no  two  black squares are adjacent (horizontally or
+              vertically).
 
-       ·      for  any  two  white squares, there is a path between them using
-              only white squares.
+       ·      for any two white squares, there is a  path  between
+              them using only white squares.
 
-       ·      for each square with a number, that number denotes the number of
-              squares reachable from that square going in each direction until
-              hitting a wall or a black square.
+       ·      for  each  square with a number, that number denotes
+              the number of squares  reachable  from  that  square
+              going  in  each  direction until hitting a wall or a
+              black square.
 
-       For instance, a square containing the number one must have  four  black
-       squares as its neighbours by the last criterion; but then it's impossi‐
-       ble for it to be connected to any outside white square, which  violates
-       the second to last criterion. So no square will contain the number one.
+       For instance, a square containing the number one must  have
+       four black squares as its neighbours by the last criterion;
+       but then it's impossible for it to be connected to any out‐
+       side white square, which violates the second to last crite‐
+       rion. So no square will contain the number one.
 
-       Credit  for  this  puzzle  goes to Nikoli, who have variously called it
-       `Kurodoko', `Kuromasu' or `Where is Black Cells'. [18].
+       Credit for this puzzle goes to Nikoli, who  have  variously
+       called it `Kurodoko', `Kuromasu' or `Where is Black Cells'.
+       [18].
 
        Range was contributed to this collection by Jonas Koelker.
 
-       [18]   http://www.nikoli.co.jp/en/puzzles/where_is_black_cells/
+       [18]   http://www.nikoli.co.jp/en/puz‐
+              zles/where_is_black_cells/
 
    Range controls
-       Click with the left button to paint a square black, or with  the  right
-       button  to  mark  a  square with a dot to indicate that you are sure it
-       should not be painted black. Repeated clicking with either button  will
-       cycle  the  square through the three possible states (filled, dotted or
-       empty) in opposite directions.
+       Click with the left button to paint a square black, or with
+       the right button to mark a square with a  dot  to  indicate
+       that  you are sure it should not be painted black. Repeated
+       clicking with either button will cycle the  square  through
+       the  three  possible  states  (filled,  dotted or empty) in
+       opposite directions.
 
-       You can also use the cursor keys  to  move  around  the  grid  squares.
-       Pressing  Return  does the same as clicking with the left button, while
-       pressing Space does the same as a right button click.
+       You can also use the cursor keys to move  around  the  grid
+       squares. Pressing Return does the same as clicking with the
+       left button, while pressing Space does the same as a  right
+       button click.
 
-       (All the actions described in section 2.1 are also available.)
+       (All  the  actions described in section 2.1 are also avail‐
+       able.)
 
    Range parameters
-       These parameters are available  from  the  `Custom...'  option  on  the
-       `Type' menu.
+       These parameters are available from the `Custom...'  option
+       on the `Type' menu.
 
        Width, Height
               Size of grid in squares.
