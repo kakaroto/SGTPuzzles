@@ -276,6 +276,7 @@ create_standard_menu_frame (frontend *fe)
 
   cairo_set_source (cr, linpat);
   cairo_paint (cr);
+  cairo_pattern_destroy (linpat);
 
   cairo_select_font_face(cr, "Arial",
       CAIRO_FONT_SLANT_NORMAL,
