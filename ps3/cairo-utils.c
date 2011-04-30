@@ -49,7 +49,7 @@ cairo_utils_get_surface_height (cairo_surface_t *surface)
 }
 
 void
-cairo_utils_clip_round_edge (cairo_t *cr,
+cairo_utils_path_round_edge (cairo_t *cr,
     int width, int height, int x, int y, int rad)
 {
   cairo_new_path (cr);
@@ -58,6 +58,13 @@ cairo_utils_clip_round_edge (cairo_t *cr,
   cairo_arc (cr, width - x,  height - y, rad, 0, M_PI / 2);
   cairo_arc (cr, x, height - y, rad, M_PI / 2, M_PI);
   cairo_close_path (cr);
+}
+
+void
+cairo_utils_clip_round_edge (cairo_t *cr,
+    int width, int height, int x, int y, int rad)
+{
+  cairo_utils_path_round_edge (cr, width, height, x, y, rad);
   cairo_clip (cr);
 }
 

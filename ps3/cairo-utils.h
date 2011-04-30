@@ -70,8 +70,26 @@ int cairo_utils_get_surface_height (cairo_surface_t *surface);
  * This utility function will create a clip to the current cairo context in the form
  * of a box with rounded edges. This is useful for creating buttons or frames or
  * whatever looks better with rounded edges.
+ *
+ * See also: cairo_utils_path_round_edge()
  */
 void cairo_utils_clip_round_edge (cairo_t *cr,
+    int width, int height, int x, int y, int rad);
+
+/**
+ * cairo_utils_path_round_edge:
+ * @cr: The cairo context
+ * @width: The width of the box
+ * @height: The height of the box
+ * @x: The horizontal distance for the arc
+ * @y: The vertical distance for the arc
+ * @rad: The radius of the arc
+ *
+ * This utility function will create a path to the current cairo context in the form
+ * of a box with rounded edges. This is useful for creating buttons or frames or
+ * whatever looks better with rounded edges.
+ */
+void cairo_utils_path_round_edge (cairo_t *cr,
     int width, int height, int x, int y, int rad);
 
 /**
