@@ -12,6 +12,7 @@
 
 #include <sys/thread.h>
 #include <sysutil/save.h>
+#include <sys/memory.h>
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
