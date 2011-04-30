@@ -105,6 +105,7 @@ typedef struct {
   int nlines;
   char **lines;
   int start_line;
+  cairo_surface_t *background;
 } PuzzleHelp;
 
 struct frontend {

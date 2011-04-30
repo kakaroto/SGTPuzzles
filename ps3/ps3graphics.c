@@ -345,22 +345,19 @@ draw_standard_menu (frontend *fe, cairo_t *cr)
 static void
 draw_help (frontend *fe, cairo_t *cr)
 {
-  double x = 5;
-  double y = 5;
+  double x;
+  double y;
   double width = fe->width * 0.8;
   double height = fe->height * 0.8;
   char **line;
   int cnt = fe->help->start_line;
 
 
-  cairo_utils_path_round_edge (cr, width, height, 20, 20, 20);
-  cairo_set_source_rgb (cr, 0.5, 0.5, 1);
-  cairo_fill_preserve (cr);
+  cairo_save (cr);
+  cairo_translate (cr, (fe->width - width) / 2, (fe->height - height) / 2);
 
-  cairo_utils_path_round_edge (cr, width, height, 20, 20, 20);
-  cairo_set_source_rgba (cr, 0.5, 0, 0, 0.5);
-  cairo_set_line_width (cr, 10.0);
-  cairo_stroke (cr);
+  cairo_set_source_surface (cr, fe->help->background, 0, 0);
+  cairo_paint (cr);
 
   cairo_utils_clip_round_edge (cr, width, height, 30, 30, 20);
   x = 10;
@@ -378,19 +375,21 @@ draw_help (frontend *fe, cairo_t *cr)
     cairo_save (cr);
 
     cairo_select_font_face (cr,
-        "sans-serif",
+        "monospace",
         CAIRO_FONT_SLANT_NORMAL,
         CAIRO_FONT_WEIGHT_BOLD);
 
     cairo_set_font_size (cr, 15);
 
-    cairo_set_source_rgb (cr, 0, 0,  0);
-    cairo_move_to (cr, x, y + 13);
+    cairo_set_source_rgb (cr, 1, 1, 1);
+    cairo_move_to (cr, x, y + 20);
     cairo_show_text (cr, *line);
     cairo_restore (cr);
     y += 20;
     line++;
   }
+
+  cairo_restore (cr);
 
 }
 
@@ -544,10 +543,10 @@ free_help (frontend *fe)
   if (fe->help != NULL) {
     if (fe->help->lines[0] != NULL)
       free (fe->help->lines[0]);
-
     free (fe->help->lines);
-    free (fe->help);
 
+    cairo_surface_destroy (fe->help->background);
+    free (fe->help);
     fe->help = NULL;
   }
 }
@@ -561,18 +560,18 @@ _help_game (frontend *fe)
  FILE* fd = NULL;
  int filesize;
  int lines;
+ double width = fe->width * 0.8;
+ double height = fe->height * 0.8;
+ cairo_pattern_t *linpat = NULL;
+ cairo_t *cr;
 
- if (fe->help != NULL) {
-   free (fe->help->lines);
-   free (fe->help);
-   fe->help = NULL;
- }
+ free_help (fe);
 
  /* Read help file text */
  snprintf (filename, 255, "%s/data/help/%s.txt",
      cwd, gamelist_names[fe->game_idx]);
 
- fd = fopen(filename,"r");
+ fd = fopen(filename,"rb");
  if (fd != NULL) {
    fe->help = (PuzzleHelp*) malloc (sizeof(PuzzleHelp));
    fe->help->start_line = 0;
@@ -601,13 +600,42 @@ _help_game (frontend *fe)
    while (*ptr != 0) {
      fe->help->lines[fe->help->nlines++] = ptr;
 
-     while (*ptr != 0 && *ptr != '\n')
+     while (*ptr != 0 && *ptr != '\r' && *ptr != '\n')
        ptr++;
+     if (*ptr == '\r')
+       *ptr++ = 0;
      if (*ptr == '\n')
        *ptr++ = 0;
-     DEBUG ("Found Help line : %s\n", fe->help->lines[fe->help->nlines-1]);
    }
    fe->help->lines[fe->help->nlines] = NULL;
+
+   /* Setup background */
+   fe->help->background = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+       width, height);
+   cr = cairo_create (fe->help->background);
+
+   linpat = cairo_pattern_create_linear (width, 0, width, height);
+
+   cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.3, 0.3, 0.3);
+   cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.8, 0.8, 0.8);
+
+   cairo_utils_clip_round_edge (cr, width, height, 20, 20, 20);
+   cairo_set_source (cr, linpat);
+   cairo_paint (cr);
+   cairo_pattern_destroy (linpat);
+
+   linpat = cairo_pattern_create_linear (width, 0, width, height);
+
+   cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.03, 0.07, 0.10);
+   cairo_pattern_add_color_stop_rgb (linpat, 0.1, 0.04, 0.09, 0.16);
+   cairo_pattern_add_color_stop_rgb (linpat, 0.5, 0.05, 0.20, 0.35);
+   cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.06, 0.55, 0.75);
+
+   cairo_utils_clip_round_edge (cr, width, height, 22, 22, 20);
+   cairo_set_source (cr, linpat);
+   cairo_paint (cr);
+   cairo_pattern_destroy (linpat);
+   cairo_destroy (cr);
  }
  fe->redraw = TRUE;
 }
