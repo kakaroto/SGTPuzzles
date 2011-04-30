@@ -15,6 +15,7 @@ static void draw_background (frontend *fe, cairo_t *cr);
 static void draw_puzzle (frontend *fe, cairo_t *cr);
 static void draw_pointer (frontend *fe, cairo_t *cr);
 static void draw_status_bar (frontend *fe, cairo_t *cr);
+static void draw_help (frontend *fe, cairo_t *cr);
 
 void
 ps3_redraw_screen (frontend *fe)
@@ -42,6 +43,10 @@ ps3_redraw_screen (frontend *fe)
     fe->menu.draw (fe, cr);
   else if (fe->cursor_last_move == FALSE)
     draw_pointer (fe, cr);
+
+  if(fe->help != NULL){
+    draw_help(fe);
+  }
 
   cairo_destroy (cr);
 
@@ -336,6 +341,76 @@ draw_standard_menu (frontend *fe, cairo_t *cr)
   cairo_surface_destroy (surface);
 }
 
+static void
+draw_help (frontend *fe, cairo_t *cr)
+{
+  /* To clean, drawing in cr isn't that clean :( */
+
+  double x = 5;
+  double y = 5;
+  double width = fe->width-10;
+  double height = fe->height-10;
+  double aspect = 1.0;     /* aspect ratio */
+  double corner_radius = height / 10.0;   /* and corner curvature radius */
+  double radius = corner_radius / aspect;
+  double degrees = M_PI / 180.0;
+  char *temp;
+  int cnt = fe->line_offset;
+
+
+  /* cool rectangle stolen from cairo documentation */
+  cairo_new_sub_path (cr);
+  cairo_arc (cr, x + width - radius, y + radius, radius, -90 * degrees
+      , 0 * degrees);
+  cairo_arc (cr, x + width - radius, y + height - radius, radius, 0 * degrees
+      , 90 * degrees);
+  cairo_arc (cr, x + radius, y + height - radius, radius, 90 * degrees
+      , 180 * degrees);
+  cairo_arc (cr, x + radius, y + radius, radius, 180 * degrees
+      , 270 * degrees);
+  cairo_close_path (cr);
+
+  cairo_set_source_rgb (cr, 0.5, 0.5, 1);
+  cairo_fill_preserve (cr);
+  cairo_set_source_rgba (cr, 0.5, 0, 0, 0.5);
+  cairo_set_line_width (cr, 10.0);
+  cairo_stroke (cr);
+
+  x = 10;
+  y = 10;
+
+  while (temp != NULL && y<fe->height-10) {
+    temp = strtok (fe->text,"\n");
+
+    if(cnt > 0) {
+      cnt--;
+      continue;
+    }
+
+    /* Drawing text line */
+    cairo_save (cr);
+    /* Set antialiasing */
+    opt = cairo_font_options_create ();
+    cairo_get_font_options (cr, opt);
+    cairo_font_options_set_antialias (opt, CAIRO_ANTIALIAS_SUBPIXEL);
+    cairo_set_font_options (cr, opt);
+    cairo_font_options_destroy (opt);
+    cairo_select_font_face(cr,
+        "sans-serif",
+        CAIRO_FONT_SLANT_NORMAL,
+        CAIRO_FONT_WEIGHT_BOLD);
+
+    cairo_set_font_size(cr, 15);
+
+    cairo_set_source_rgb (cr, 0, 0,  0);
+    cairo_move_to (cr, x, y);
+    cairo_show_text (cr, item->text);
+    cairo_restore (cr);
+    y+=20;
+  }
+
+}
+
 
 static cairo_surface_t *
 create_standard_background (float r, float g, float b) {
@@ -480,6 +555,31 @@ _change_game (frontend *fe)
 }
 
 
+static void
+_help_game (frontend *fe)
+{
+ char* filename;
+ FILE* fd;
+ int filesize;
+
+ fe->help = (PuzzleHelp*) malloc (sizeof(PuzzleHelp));
+ fe->help->line_offset = 0;
+
+ /* Read help file text */
+ snprintf (filename, 255, "%s/data/help/%s.txt", cwd, gamelist_names[i]);
+ fd = fopen(filename,"r");
+ fseek(fd, 0, SEEK_END);
+ filesize = ftell(fd);
+ fseek(fd, 0, SEEK_SET);
+
+ fe->text = (char*) malloc(sizeof(char));
+ fread(fe->text, 1, filesize, fd);
+
+ fclose(fd);
+
+ fe->redraw = TRUE;
+}
+
 const struct {
   const char *title;
   void (*callback) (frontend *fe);
@@ -490,6 +590,7 @@ const struct {
   {"Load Game", _load_game},
   {"Solve", _solve_game},
   {"Change Puzzle", _change_game},
+  {"Help",_help_game},
   {NULL, NULL},
 };
 

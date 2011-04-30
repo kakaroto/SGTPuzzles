@@ -101,6 +101,11 @@ typedef struct {
   void (*draw) (frontend *fe, cairo_t *cr);
 } SGTPuzzlesMenu;
 
+typedef struct {
+  char *text;
+  int line_offset;
+} PuzzleHelp;
+
 struct frontend {
   /* RSX device context */
   gcmContextData *context;
@@ -135,6 +140,7 @@ struct frontend {
   SGTPuzzlesMenu menu;
   SaveData save_data;
   XMBEvent xmb;
+  PuzzleHelp* help;
 };
 
 typedef struct {
