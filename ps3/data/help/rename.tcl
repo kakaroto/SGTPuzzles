@@ -3,7 +3,7 @@
 foreach file [glob *.txt] {
     set new_file [string tolower $file]
     set new_file [string map {" " ""} $new_file]
-    if {$file == "Introduction.txt" || $file == "License.txt" } {
+    if {$file == "Introduction.txt" || $file == "Licence.txt" } {
         continue
     }
     if {$file == "Common features.txt" } {
@@ -14,6 +14,6 @@ foreach file [glob *.txt] {
         set new_file "rect.txt"
     }
     if {$file != $new_file} {
-        exec git mv $file $new_file
+        file rename -force $file $new_file
     }
 }
