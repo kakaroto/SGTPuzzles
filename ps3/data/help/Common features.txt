@@ -1,0 +1,291 @@
+Common features
+       This chapter describes features that are common to all the games.
+
+   Common actions
+       These  actions  are all available from the `Game' menu and via keyboard
+       shortcuts, in addition to any game-specific actions.
+
+       (On Mac OS X, to conform with local  user  interface  standards,  these
+       actions are situated on the `File' and `Edit' menus instead.)
+
+       New game (`N', Ctrl+`N')
+              Starts a new game, with a random initial state.
+
+       Restart game
+              Resets  the  current  game  to  its  initial state. (This can be
+              undone.)
+
+       Load   Loads a saved game from a file on disk.
+
+       Save   Saves the current state of your game to a file on disk.
+
+              The Load and Save operations preserve your entire  game  history
+              (so you can save, reload, and still Undo and Redo things you had
+              done before saving).
+
+       Print  Where supported (currently only on Windows), brings up a  dialog
+              allowing  you  to  print an arbitrary number of puzzles randomly
+              generated from the current parameters, optionally including  the
+              current  puzzle. (Only for puzzles which make sense to print, of
+              course - it's hard to think of a sensible printable  representa‐
+              tion of Fifteen!)
+
+       Undo (`U', Ctrl+`Z', Ctrl+`_')
+              Undoes  a  single move. (You can undo moves back to the start of
+              the session.)
+
+       Redo (`R', Ctrl+`R')
+              Redoes a previously undone move.
+
+       Copy   Copies the current state of your game to the clipboard  in  text
+              format,  so that you can paste it into (say) an e-mail client or
+              a web message board if you're discussing the game  with  someone
+              else. (Not all games support this feature.)
+
+       Solve  Transforms  the puzzle instantly into its solved state. For some
+              games (Cube) this feature is not supported at all because it  is
+              of  no  particular  use.  For other games (such as Pattern), the
+              solved state can be used to give you information, if  you  can't
+              see  how  a  solution can exist at all or you want to know where
+              you made a mistake. For still other  games  (such  as  Sixteen),
+              automatic  solution  tells  you  nothing about how to get to the
+              solution, but it does provide a useful way to get there  quickly
+              so  that you can experiment with set-piece moves and transforma‐
+              tions.
+
+              Some games (such as Solo) are capable of solving a game  ID  you
+              have  typed  in from elsewhere. Other games (such as Rectangles)
+              cannot solve a game ID they didn't  invent  themself,  but  when
+              they  did  invent  the  game  ID  they know what the solution is
+              already. Still other games (Pattern)  can  solve  some  external
+              game IDs, but only if they aren't too difficult.
+
+              The `Solve' command adds the solved state to the end of the undo
+              chain for the puzzle. In other words, if you want to go back  to
+              solving  it yourself after seeing the answer, you can just press
+              Undo.
+
+       Quit (`Q', Ctrl+`Q')
+              Closes the application entirely.
+
+   Specifying games with the game ID
+       There are two ways to save a game specification out  of  a  puzzle  and
+       recreate  it  later, or recreate it in somebody else's copy of the same
+       puzzle.
+
+       The `Specific' and `Random Seed' options from the `Game' menu  (or  the
+       `File' menu, on Mac OS X) each show a piece of text (a `game ID') which
+       is sufficient to reconstruct precisely the same game at a later date.
+
+       You can enter either of these pieces of text back into the program (via
+       the  same  `Specific'  or `Random Seed' menu options) at a later point,
+       and it will recreate the same game. You can also use either  one  as  a
+       command  line  argument  (on Windows or Unix); see section 2.4 for more
+       detail.
+
+       The difference between the two forms is that a descriptive game ID is a
+       literal  description of the initial state of the game, whereas a random
+       seed is just a piece of arbitrary text which was provided as  input  to
+       the random number generator used to create the puzzle. This means that:
+
+       ·      Descriptive game IDs tend to be longer in many puzzles (although
+              some, such as Cube (chapter 4), only need  very  short  descrip‐
+              tions). So a random seed is often a quicker way to note down the
+              puzzle you're currently playing, or to tell it to somebody  else
+              so they can play the same one as you.
+
+       ·      Any text at all is a valid random seed. The automatically gener‐
+              ated ones are fifteen-digit numbers, but anything will  do;  you
+              can  type  in  your full name, or a word you just made up, and a
+              valid puzzle will be generated from it. This provides a way  for
+              two  or  more  people  to  race to complete the same puzzle: you
+              think of a random seed, then everybody types it in at  the  same
+              time,  and nobody has an advantage due to having seen the gener‐
+              ated puzzle before anybody else.
+
+       ·      It is often possible to convert puzzles from other sources (such
+              as  `nonograms'  or  `sudoku'  from newspapers) into descriptive
+              game IDs suitable for use with these programs.
+
+       ·      Random seeds are not guaranteed to produce the  same  result  if
+              you  use  them  with  a different version of the puzzle program.
+              This  is  because  the  generation  algorithm  might  have  been
+              improved  or  modified  in  later versions of the code, and will
+              therefore  produce  a  different  result  when  given  the  same
+              sequence  of  random  numbers.  Use a descriptive game ID if you
+              aren't sure that it will be used on the same version of the pro‐
+              gram as yours.
+
+              (Use  the  `About' menu option to find out the version number of
+              the program. Programs with the same version  number  running  on
+              different platforms should still be random-seed compatible.)
+
+       A  descriptive  game  ID  starts with a piece of text which encodes the
+       parameters of the current game (such as grid size).  Then  there  is  a
+       colon, and after that is the description of the game's initial state. A
+       random seed starts with a similar string of  parameters,  but  then  it
+       contains a hash sign followed by arbitrary data.
+
+       If  you  enter  a  descriptive game ID, the program will not be able to
+       show you the random seed which generated it, since it wasn't  generated
+       from  a  random  seed. If you enter a random seed, however, the program
+       will be able to show you the descriptive game ID derived from that ran‐
+       dom seed.
+
+       Note  that  the game parameter strings are not always identical between
+       the two forms. For some games, there will be  parameter  data  provided
+       with  the random seed which is not included in the descriptive game ID.
+       This is because that parameter information is only relevant when gener‐
+       ating  puzzle  grids, and is not important when playing them. Thus, for
+       example, the difficulty level in Solo (chapter 11) is not mentioned  in
+       the descriptive game ID.
+
+       These additional parameters are also not set permanently if you type in
+       a game ID. For example, suppose you have Solo set to `Advanced'  diffi‐
+       culty level, and then a friend wants your help with a `Trivial' puzzle;
+       so the friend reads out a random seed specifying `Trivial'  difficulty,
+       and  you  type  it in. The program will generate you the same `Trivial'
+       grid which your friend was having trouble with, but once you have  fin‐
+       ished  playing it, when you ask for a new game it will automatically go
+       back to the `Advanced' difficulty which it was previously set on.
+
+   The `Type' menu
+       The `Type' menu, if present, may contain a list  of  preset  game  set‐
+       tings.  Selecting  one  of  these will start a new random game with the
+       parameters specified.
+
+       The `Type' menu may also contain a `Custom' option which allows you  to
+       fine-tune  game  parameters.  The  parameters available are specific to
+       each game and are described in the following sections.
+
+   Specifying game parameters on the command line
+       (This section does not apply to the Mac OS X version.)
+
+       The games in this collection deliberately do not ever save  information
+       on  to  the computer they run on: they have no high score tables and no
+       saved preferences. (This is because I expect at least  some  people  to
+       play them at work, and those people will probably appreciate leaving as
+       little evidence as possible!)
+
+       However, if you do want to arrange for one of these games to default to
+       a  particular  set  of  parameters, you can specify them on the command
+       line.
+
+       The easiest way to do this is to set up the parameters you  want  using
+       the  `Type'  menu  (see  section 2.3), and then to select `Random Seed'
+       from the `Game' or `File' menu (see section 2.2). The text in the `Game
+       ID'  box  will be composed of two parts, separated by a hash. The first
+       of these parts represents the game parameters (the size of the  playing
+       area, for example, and anything else you set using the `Type' menu).
+
+       If  you run the game with just that parameter text on the command line,
+       it will start up with the settings you specified.
+
+       For example: if you run Cube (see chapter 4), select `Octahedron'  from
+       the  `Type'  menu, and then go to the game ID selection, you will see a
+       string of the form `o2x2#338686542711620'. Take only  the  part  before
+       the  hash  (`o2x2'), and start Cube with that text on the command line:
+       `cube o2x2'.
+
+       If you copy the entire game ID on to the command line,  the  game  will
+       start  up in the specific game that was described. This is occasionally
+       a more convenient way to start a particular game ID than by pasting  it
+       into the game ID selection box.
+
+       (You  could  also  retrieve the encoded game parameters using the `Spe‐
+       cific' menu option instead of `Random Seed', but if you  do  then  some
+       options,  such  as  the  difficulty level in Solo, will be missing. See
+       section 2.2 for more details on this.)
+
+   Unix command-line options
+       (This section only applies to the Unix port.)
+
+       In addition to being able to specify game  parameters  on  the  command
+       line (see section 2.4), there are various other options:
+
+       --game
+
+       --load These  options  respectively  determine whether the command-line
+              argument is treated as specifying game parameters or a save file
+              to  load.  Only  one  should  be  specified. If neither of these
+              options is specified, a guess is made based on the format of the
+              argument.
+
+       --generate n
+              If  this  option  is  specified,  instead of a puzzle being dis‐
+              played, a number of descriptive game IDs will  be  invented  and
+              printed on standard output. This is useful for gaining access to
+              the game generation algorithms  without  necessarily  using  the
+              frontend.
+
+              If  game parameters are specified on the command-line, they will
+              be used to generate the game IDs; otherwise  a  default  set  of
+              parameters will be used.
+
+              The  most  common  use  of  this  option  is in conjunction with
+              --print, in which case its behaviour is slightly different;  see
+              below.
+
+       --print wxh
+              If  this  option  is  specified,  instead of a puzzle being dis‐
+              played, a printed representation of one or more unsolved puzzles
+              is sent to standard output, in PostScript format.
+
+              On  each  page of puzzles, there will be w across and h down. If
+              there are more puzzles than w×h, more  than  one  page  will  be
+              printed.
+
+              If  --generate  has  also  been specified, the invented game IDs
+              will be used to generate the printed output. Otherwise,  a  list
+              of game IDs is expected on standard input (which can be descrip‐
+              tive or random seeds; see section 2.2), in the same format  pro‐
+              duced by --generate.
+
+              For example:
+
+              net --generate 12 --print 2x3 7x7w | lpr
+
+              will  generate  two  pages of printed Net puzzles (each of which
+              will have a 7×7 wrapping grid), and pipe the output to  the  lpr
+              command,  which  on  many  systems  will  send them to an actual
+              printer.
+
+              There are various  other  options  which  affect  printing;  see
+              below.
+
+       --save file-prefix [ --save-suffix file-suffix ]
+              If  this  option  is  specified,  instead of a puzzle being dis‐
+              played, saved-game files for one or more  unsolved  puzzles  are
+              written  to  files  constructed  from the supplied prefix and/or
+              suffix.
+
+              If --generate has also been specified,  the  invented  game  IDs
+              will  be  used to generate the printed output. Otherwise, a list
+              of game IDs is expected on standard input (which can be descrip‐
+              tive  or random seeds; see section 2.2), in the same format pro‐
+              duced by --generate.
+
+              For example:
+
+              net --generate 12 --save game --save-suffix .sav
+
+              will  generate  twelve  Net  saved-game  files  with  the  names
+              game0.sav to game11.sav.
+
+       --version
+              Prints version information about the game, and then quits.
+
+       The following options are only meaningful if --print is also specified:
+
+       --with-solutions
+              The  set  of pages filled with unsolved puzzles will be followed
+              by the solutions to those puzzles.
+
+       --scale n
+              Adjusts how big each puzzle is when printed. Larger numbers make
+              puzzles bigger; the default is 1.0.
+
+       --colour
+              Puzzles  will  be  printed  in  colour, rather than in black and
+              white (if supported by the puzzle).
+

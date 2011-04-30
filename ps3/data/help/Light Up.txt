@@ -1,0 +1,70 @@
+Light Up
+       You have a grid of squares. Some are filled in black; some of the black
+       squares  are  numbered. Your aim is to `light up' all the empty squares
+       by placing light bulbs in some of them.
+
+       Each light bulb illuminates the square it is on, plus  all  squares  in
+       line with it horizontally or vertically unless a black square is block‐
+       ing the way.
+
+       To win the game, you must satisfy the following conditions:
+
+       ·      All non-black squares are lit.
+
+       ·      No light is lit by another light.
+
+       ·      All numbered black squares have exactly that  number  of  lights
+              adjacent  to  them (in the four squares above, below, and to the
+              side).
+
+       Non-numbered black squares may have any number of  lights  adjacent  to
+       them.
+
+       Credit for this puzzle goes to Nikoli [9].
+
+       Light Up was contributed to this collection by James Harvey.
+
+       [9]    http://www.nikoli.co.jp/puzzles/32/index-e.htm (beware of Flash)
+
+   Light Up controls
+       Left-clicking in a non-black square will toggle the presence of a light
+       in that square. Right-clicking in a non-black  square  toggles  a  mark
+       there  to  aid solving; it can be used to highlight squares that cannot
+       be lit, for example.
+
+       You may not place a light in a marked square, nor place a mark in a lit
+       square.
+
+       The  game  will  highlight  obvious  errors in red. Lights lit by other
+       lights are highlighted in this way, as are numbered  squares  which  do
+       not (or cannot) have the right number of lights next to them.
+
+       Thus,  the  grid is solved when all non-black squares have yellow high‐
+       lights and there are no red lights.
+
+       (All the actions described in section 2.1 are also available.)
+
+   Light Up parameters
+       These parameters are available  from  the  `Custom...'  option  on  the
+       `Type' menu.
+
+       Width, Height
+              Size of grid in squares.
+
+       %age of black squares
+              Rough percentage of black squares in the grid.
+
+              This is a hint rather than an instruction. If the grid generator
+              is unable to generate a puzzle to this precise specification, it
+              will increase the proportion of black squares until it can.
+
+       Symmetry
+              Allows you to specify the required symmetry of the black squares
+              in the grid. (This does not affect the difficulty of the puzzles
+              noticeably.)
+
+       Difficulty
+              `Easy'  means  that  the puzzles should be soluble without back‐
+              tracking or guessing, `Hard' means that some guesses will proba‐
+              bly be necessary.
+
