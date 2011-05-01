@@ -1,7 +1,7 @@
 High priority :
 - Add an about page
 - Fix performance issues, need 30/60 fps on full redrawns on 1080p now it's around 1 or 2 fps...
-- Add a way to enter numbers/letters for Solo/Unequal games
+- Add a way to enter numbers/letters for Solo/Unequal/Keen/Towers games
 - Fix game help by using FreeType and supporting utf-8 chars correctly.
 
 Medium priority :
