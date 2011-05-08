@@ -717,8 +717,13 @@ puzzles_menu_callback (frontend *fe, int accepted)
 
 void
 create_puzzles_menu (frontend * fe) {
+  cairo_pattern_t *linpat = NULL;
   cairo_surface_t *surface;
+  cairo_font_extents_t fex;
+  cairo_text_extents_t tex;
   int width, height;
+  cairo_t *cr;
+  int x, y;
   int i ;
 
   fe->puzzles_menu.callback = puzzles_menu_callback;
@@ -726,7 +731,8 @@ create_puzzles_menu (frontend * fe) {
   fe->puzzles_menu.title = "Choose Puzzle";
 
   width = fe->width * 0.9;
-  height = (fe->height * 0.9) - PUZZLE_MENU_DESCRIPTION_HEIGHT;
+  height = (fe->height * 0.9) -
+      PUZZLE_MENU_DESCRIPTION_HEIGHT - PUZZLE_MENU_FRAME_TOP;
   surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32, width, height);
 
   /* Infinite vertical scrollable menu */
@@ -747,4 +753,48 @@ create_puzzles_menu (frontend * fe) {
       cairo_surface_destroy (surface);
     }
   }
+
+
+  /* Adapt frame height depending on items in the menu */
+  fe->puzzles_menu.frame = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32,
+      fe->width, fe->height);
+  cr = cairo_create (fe->puzzles_menu.frame);
+  linpat = cairo_pattern_create_linear (width, 0, width, height);
+
+  cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.03, 0.07, 0.10);
+  cairo_pattern_add_color_stop_rgb (linpat, 0.1, 0.04, 0.09, 0.16);
+  cairo_pattern_add_color_stop_rgb (linpat, 0.5, 0.05, 0.20, 0.35);
+  cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.06, 0.55, 0.75);
+
+  cairo_set_source (cr, linpat);
+  cairo_paint (cr);
+  cairo_pattern_destroy (linpat);
+
+  /* Draw a frame around the menu so cut off buttons don't appear clippped */
+  cairo_save (cr);
+  cairo_translate (cr, (fe->width - width) / 2,
+      ((fe->height - PUZZLE_MENU_DESCRIPTION_HEIGHT - height) / 2) +
+      PUZZLE_MENU_FRAME_TOP);
+  cairo_utils_clip_round_edge (cr, width, height, 20, 20, 20);
+  cairo_set_source_rgb (cr, 0, 0, 0);
+  cairo_paint_with_alpha (cr, 0.5);
+  cairo_restore (cr);
+
+  cairo_select_font_face(cr, "Arial",
+      CAIRO_FONT_SLANT_NORMAL,
+      CAIRO_FONT_WEIGHT_BOLD);
+
+  cairo_set_font_size(cr, 25);
+
+  cairo_font_extents (cr, &fex);
+  cairo_text_extents (cr, fe->puzzles_menu.title, &tex);
+
+  y = (STANDARD_MENU_FRAME_TOP / 2) + (fex.ascent / 2);
+  x = ((fe->width - tex.width) / 2) - tex.x_bearing;
+  cairo_move_to(cr, x, y);
+  cairo_set_source_rgb (cr, 0.0, 0.5, 0.8);
+  cairo_show_text (cr, fe->puzzles_menu.title);
+  cairo_destroy (cr);
+
+  cairo_surface_flush (fe->puzzles_menu.frame);
 }
