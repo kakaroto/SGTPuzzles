@@ -162,7 +162,7 @@ draw_puzzles_menu (frontend *fe, cairo_t *cr)
       CAIRO_FONT_SLANT_NORMAL,
       CAIRO_FONT_WEIGHT_BOLD);
 
-  cairo_set_font_size(cr, 20);
+  cairo_set_font_size(cr, 18);
 
   cairo_font_extents (cr, &fex);
 
