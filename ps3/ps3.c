@@ -162,6 +162,7 @@ handle_pad (frontend *fe, padData *paddata)
   static struct timeval cursor_last_ts;
   int keyval = -1;
   Ps3MenuRectangle bbox;
+  SGTPuzzlesMenu *menu = NULL;
   struct timeval now;
   int mouse_moved = FALSE;
 
@@ -272,31 +273,36 @@ handle_pad (frontend *fe, padData *paddata)
     }
     fe->redraw = TRUE;
   }
-  else if (fe->menu.menu != NULL) {
+
+  menu = &fe->menu;
+  if (menu->menu == NULL && fe->image == NULL)
+    menu = &fe->puzzles_menu;
+
+  if (menu->menu != NULL) {
     if (paddata->BTN_START || paddata->BTN_CIRCLE) {
       DEBUG ("Cancelling menu\n");
-      fe->menu.callback (fe, FALSE);
+      menu->callback (fe, FALSE);
       fe->redraw = TRUE;
       return TRUE;
     } else if (paddata->BTN_CROSS) {
       DEBUG ("Accepting menu\n");
-      fe->menu.callback (fe, TRUE);
+      menu->callback (fe, TRUE);
       fe->redraw = TRUE;
       return TRUE;
     } else if (keyval == CURSOR_UP) {
-      ps3_menu_handle_input (fe->menu.menu, PS3_MENU_INPUT_UP, &bbox);
+      ps3_menu_handle_input (menu->menu, PS3_MENU_INPUT_UP, &bbox);
       fe->redraw = TRUE;
       return TRUE;
     } else if (keyval == CURSOR_DOWN) {
-      ps3_menu_handle_input (fe->menu.menu, PS3_MENU_INPUT_DOWN, &bbox);
+      ps3_menu_handle_input (menu->menu, PS3_MENU_INPUT_DOWN, &bbox);
       fe->redraw = TRUE;
       return TRUE;
     } else if (keyval == CURSOR_LEFT) {
-      ps3_menu_handle_input (fe->menu.menu, PS3_MENU_INPUT_LEFT, &bbox);
+      ps3_menu_handle_input (menu->menu, PS3_MENU_INPUT_LEFT, &bbox);
       fe->redraw = TRUE;
       return TRUE;
     } else if (keyval == CURSOR_RIGHT) {
-      ps3_menu_handle_input (fe->menu.menu, PS3_MENU_INPUT_RIGHT, &bbox);
+      ps3_menu_handle_input (menu->menu, PS3_MENU_INPUT_RIGHT, &bbox);
       fe->redraw = TRUE;
       return TRUE;
     }
@@ -312,7 +318,7 @@ handle_pad (frontend *fe, padData *paddata)
       return TRUE;
     }
 
-    if (keyval >= 0 &&
+    if (fe->me && keyval >= 0 &&
         !midend_process_key (fe->me, fe->pointer_x, fe->pointer_y, keyval))
       return FALSE;
 
@@ -480,6 +486,9 @@ destroy_window (frontend *fe)
   free (fe->host_addr);
 
   free_sgt_menu (fe);
+
+  ps3_menu_free (fe->puzzles_menu.menu);
+  cairo_surface_destroy (fe->puzzles_menu.frame);
 
   free_help (fe);
 

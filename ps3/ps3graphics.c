@@ -35,11 +35,14 @@ ps3_redraw_screen (frontend *fe)
 
   cr = cairo_create (surface);
 
-  draw_background (fe, cr);
   if (fe->image != NULL) {
+    draw_background (fe, cr);
     draw_puzzle (fe, cr);
     draw_status_bar (fe, cr);
+  } else {
+    fe->puzzles_menu.draw (fe, cr);
   }
+
   if (fe->menu.menu != NULL)
     fe->menu.draw (fe, cr);
   else if (fe->cursor_last_move == FALSE)
@@ -131,21 +134,27 @@ draw_puzzles_menu (frontend *fe, cairo_t *cr)
   cairo_text_extents_t tex;
   const char *description1;
   const char *description2;
+  int selection = fe->puzzles_menu.menu->selection;
   int x, y, w, h;
 
-  ps3_menu_redraw (fe->menu.menu);
-  surface = ps3_menu_get_surface (fe->menu.menu);
+  ps3_menu_redraw (fe->puzzles_menu.menu);
+  surface = ps3_menu_get_surface (fe->puzzles_menu.menu);
   cairo_utils_get_surface_size (surface, &w, &h);
 
-  cairo_set_source_surface (cr, surface, (fe->width - w) / 2,
-      (fe->height - PUZZLE_MENU_DESCRIPTION_HEIGHT - h) / 2);
+  cairo_set_source_surface (cr, fe->puzzles_menu.frame, 0, 0);
   cairo_paint (cr);
+
+  cairo_set_source_surface (cr, surface, (fe->width - w) / 2,
+      ((fe->height - PUZZLE_MENU_DESCRIPTION_HEIGHT - h) / 2) +
+      PUZZLE_MENU_FRAME_TOP);
+  cairo_paint (cr);
+
   cairo_surface_destroy (surface);
 
 
   /* Draw game description */
-  description1 = puzzle_descriptions[fe->menu.menu->selection].description1;
-  description2 = puzzle_descriptions[fe->menu.menu->selection].description2;
+  description1 = puzzle_descriptions[selection].description1;
+  description2 = puzzle_descriptions[selection].description2;
   cairo_save(cr);
   cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
 
@@ -532,7 +541,6 @@ static void
 _change_game (frontend *fe)
 {
   destroy_midend (fe);
-  create_puzzles_menu (fe);
   fe->redraw = TRUE;
 }
 
@@ -733,13 +741,11 @@ create_types_menu (frontend * fe){
 static void
 puzzles_menu_callback (frontend *fe, int accepted)
 {
-  int selected_item = fe->menu.menu->selection;
+  int selected_item = fe->puzzles_menu.menu->selection;
 
   /* Don't allow cancelling the puzzles menu */
   if (accepted == FALSE)
     return;
-
-  free_sgt_menu (fe);
 
   /* Game selected */
   create_midend (fe, selected_item);
@@ -751,26 +757,28 @@ create_puzzles_menu (frontend * fe) {
   int width, height;
   int i ;
 
-  fe->menu.callback = puzzles_menu_callback;
-  fe->menu.draw = draw_puzzles_menu;
+  fe->puzzles_menu.callback = puzzles_menu_callback;
+  fe->puzzles_menu.draw = draw_puzzles_menu;
+  fe->puzzles_menu.title = "Choose Puzzle";
+
   width = fe->width * 0.9;
   height = (fe->height * 0.9) - PUZZLE_MENU_DESCRIPTION_HEIGHT;
   surface = cairo_image_surface_create  (CAIRO_FORMAT_ARGB32, width, height);
 
   /* Infinite vertical scrollable menu */
-  fe->menu.menu = ps3_menu_new_full (surface, -1, 4,
+  fe->puzzles_menu.menu = ps3_menu_new_full (surface, -1, 4,
       (width / 4) - (2 * 20), 150, 20, 5, 3, NULL, NULL, NULL);
   cairo_surface_destroy (surface);
 
   for (i = 0; i < gamecount; i++) {
     char filename[256];
 
-    ps3_menu_add_item (fe->menu.menu, gamelist[i]->name, 20);
+    ps3_menu_add_item (fe->puzzles_menu.menu, gamelist[i]->name, 20);
     snprintf (filename, 255, "%s/data/puzzles/%s.png", cwd, gamelist_names[i]);
     surface = cairo_image_surface_create_from_png (filename);
     if (surface) {
-      fe->menu.menu->items[i].alignment = PS3_MENU_ALIGN_BOTTOM_CENTER;
-      ps3_menu_set_item_image (fe->menu.menu, i, surface,
+      fe->puzzles_menu.menu->items[i].alignment = PS3_MENU_ALIGN_BOTTOM_CENTER;
+      ps3_menu_set_item_image (fe->puzzles_menu.menu, i, surface,
           PS3_MENU_IMAGE_POSITION_TOP);
       cairo_surface_destroy (surface);
     }

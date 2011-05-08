@@ -140,6 +140,7 @@ struct frontend {
   struct timeval timer_last_ts;
   int timer_enabled;
   SGTPuzzlesMenu menu;
+  SGTPuzzlesMenu puzzles_menu;
   SaveData save_data;
   XMBEvent xmb;
   PuzzleHelp* help;
