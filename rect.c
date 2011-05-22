@@ -110,6 +110,8 @@ static int game_fetch_preset(int i, char **name, game_params **params)
 #ifndef SMALL_SCREEN
       case 5: w = 17, h = 17; break;
       case 6: w = 19, h = 19; break;
+      case 7: w = 25, h = 25; break;
+      case 8: w = 30, h = 30; break;
 #endif
       default: return FALSE;
     }
