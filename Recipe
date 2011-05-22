@@ -67,7 +67,7 @@ obfusc : [U] obfusc STANDALONE
 
 puzzles  : [G] windows[COMBINED] WINDOWS_COMMON COMMON ALL noicon.res
 
-Puzzles  : [PS] foo.c bar.c PS3 COMMON ALL
+SGTPuzzles  : [PS] PS3 COMMON ALL
 
 # Mac OS X unified application containing all the puzzles.
 Puzzles  : [MX] osx osx.icns osx-info.plist COMMON ALL
@@ -239,7 +239,7 @@ ICON0           :=      $(CURDIR)/ps3/ICON0.PNG
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 #---------------------------------------------------------------------------------
-TARGET          :=      Puzzles
+TARGET          :=      SGTPuzzles
 PKGFILES        :=      $(CURDIR)/ps3/data
 INCLUDES        :=      $(CURDIR)/ps3/ $(CURDIR)
 BUILDDIR	:=	.
