@@ -1,0 +1,16 @@
+                        About SGT Puzzles v0.1
+
+This Puzzle Games Collection is a port of Simon Tatham's Portable
+Puzzle Collection for the Playstation 3 System and it includes
+33 addictive puzzle games for your enjoyment.
+
+The port of these games to the Playstation 3, as well as the
+Playstation 3 front end was written by Youness Alaoui (KaKaRoTo).
+
+These games are distributed under the MIT licence.
+
+Please visit http://humblehomebrew.com to sign a Petition asking Sony
+for official Homebrew support, and donate to the authors of these
+games as well as the Electronic Frontier Foundation (EFF).
+
+Thank you, and enjoy these games!

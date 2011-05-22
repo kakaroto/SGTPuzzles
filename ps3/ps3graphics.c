@@ -522,10 +522,9 @@ free_help (frontend *fe)
   }
 }
 
-static void
-_help_game (frontend *fe)
+int
+load_help (frontend *fe, char *filename)
 {
- char filename[255];
  char *text = NULL;
  char *ptr;
  FILE* fd = NULL;
@@ -534,13 +533,10 @@ _help_game (frontend *fe)
 
  free_help (fe);
 
- /* Read help file text */
- snprintf (filename, 255, "%s/data/help/%s.txt",
-     cwd, gamelist_names[fe->game_idx]);
-
  fd = fopen(filename,"rb");
  if (fd != NULL) {
    fe->help = (PuzzleHelp*) malloc (sizeof(PuzzleHelp));
+   memset (fe->help, 0, sizeof(PuzzleHelp));
    fe->help->start_line = 0;
 
    fseek(fd, 0, SEEK_END);
@@ -577,9 +573,20 @@ _help_game (frontend *fe)
    fe->help->lines[fe->help->nlines] = NULL;
  }
 
+ return fe->help != NULL;
+}
 
+static void
+_help_game (frontend *fe)
+{
+ char filename[255];
 
+ /* Read help file text */
+ snprintf (filename, 255, "%s/data/help/%s.txt",
+     cwd, gamelist_names[fe->game_idx]);
 
+ if (load_help (fe, filename))
+   fe->redraw = TRUE;
 }
 
 const struct {

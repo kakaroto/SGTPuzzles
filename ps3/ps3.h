@@ -142,6 +142,7 @@ typedef struct {
   int nlines;
   char **lines;
   int start_line;
+  SGTPuzzlesMenu menu;
 } PuzzleHelp;
 
 struct frontend {

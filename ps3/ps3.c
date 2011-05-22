@@ -264,19 +264,31 @@ handle_pad (frontend *fe, padData *paddata)
     if (keyval == CURSOR_UP) {
       if (fe->help->start_line > 0)
         fe->help->start_line--;
+      fe->redraw = TRUE;
+      return TRUE;
     } else if(keyval == CURSOR_DOWN) {
-      if (fe->help->start_line < (fe->help->nlines - 20))
+      if (fe->help->start_line < (fe->help->nlines - 18))
         fe->help->start_line++;
-    } if (paddata->BTN_START || paddata->BTN_CIRCLE) {
+      fe->redraw = TRUE;
+      return TRUE;
+    } else if (paddata->BTN_START || paddata->BTN_CIRCLE) {
       /* Exiting help */
       free_help (fe);
+      fe->redraw = TRUE;
+      return TRUE;
     }
-    fe->redraw = TRUE;
-  }
 
-  menu = &fe->menu;
-  if (menu->menu == NULL && fe->image == NULL)
-    menu = &fe->puzzles_menu;
+    /* Check in case we've just destroyed the help */
+    if (fe->help)
+      menu = &fe->help->menu;
+
+    if (menu == NULL || menu->menu == NULL)
+      return TRUE;
+  } else {
+    menu = &fe->menu;
+    if (menu->menu == NULL && fe->image == NULL)
+      menu = &fe->puzzles_menu;
+  }
 
   if (menu->menu != NULL) {
     if (paddata->BTN_START || paddata->BTN_CIRCLE) {
@@ -474,6 +486,7 @@ static frontend *
 new_window ()
 {
   frontend *fe;
+  char filename[255];
   u16 width;
   u16 height;
   int i;
@@ -500,6 +513,9 @@ new_window ()
   create_puzzles_menu (fe);
   create_help_background (fe);
 
+  /* Read help file text */
+  snprintf (filename, 255, "%s/data/help/about.txt", cwd);
+  load_help (fe, filename);
 
   fe->redraw = TRUE ;
 

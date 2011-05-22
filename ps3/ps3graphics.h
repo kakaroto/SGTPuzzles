@@ -17,6 +17,7 @@ void create_puzzles_menu (frontend * fe);
 void create_main_menu (frontend * fe);
 void create_types_menu (frontend * fe);
 void free_sgt_menu (frontend *fe);
+int load_help (frontend *fe, char *filename);
 void free_help (frontend *fe);
 
 #endif /* __PS3_GRAPHICS_H__ */
