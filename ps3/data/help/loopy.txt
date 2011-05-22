@@ -1,62 +1,62 @@
 Loopy
-       You  are  given a grid of dots, marked with yellow lines to
-       indicate which dots you are  allowed  to  connect  directly
-       together.  Your  aim  is to use some subset of those yellow
-       lines to draw a single unbroken loop from dot to dot within
-       the grid.
+       You are given a grid of dots, marked with yellow lines  to
+       indicate  which  dots  you are allowed to connect directly
+       together. Your aim is to use some subset of  those  yellow
+       lines  to  draw  a  single  unbroken  loop from dot to dot
+       within the grid.
 
-       Some of the spaces between the lines contain numbers. These
-       numbers indicate how many of the lines  around  that  space
-       form  part  of  the  loop. The loop you draw must correctly
-       satisfy all of these clues to be considered a correct solu‐
-       tion.
+       Some of the spaces  between  the  lines  contain  numbers.
+       These  numbers  indicate how many of the lines around that
+       space form part of the loop. The loop you draw  must  cor-
+       rectly  satisfy all of these clues to be considered a cor-
+       rect solution.
 
-       In  the  default  mode,  the dots are arranged in a grid of
-       squares; however, you can also play on triangular or hexag‐
-       onal grids, or even more exotic ones.
+       In the default mode, the dots are arranged in  a  grid  of
+       squares;  however,  you  can  also  play  on triangular or
+       hexagonal grids, or even more exotic ones.
 
        Credit for the basic puzzle idea goes to Nikoli [10].
 
-       Loopy was originally contributed to this collection by Mike
-       Pinna, and subsequently enhanced to handle various types of
-       non-square grid by Lambros Lambrou.
+       Loopy was originally contributed  to  this  collection  by
+       Mike  Pinna,  and  subsequently enhanced to handle various
+       types of non-square grid by Lambros Lambrou.
 
        [10]   http://www.nikoli.co.jp/puzzles/3/index-e.htm
               (beware of Flash)
 
    Loopy controls
-       Click the left mouse button on a yellow  line  to  turn  it
-       black,  indicating  that  you think it is part of the loop.
-       Click again to turn the  line  yellow  again  (meaning  you
+       Click  the  left  mouse button on a yellow line to turn it
+       black, indicating that you think it is part of  the  loop.
+       Click  again  to  turn  the line yellow again (meaning you
        aren't sure yet).
 
-       If  you are sure that a particular line segment is not part
-       of the loop, you can click the right mouse button to remove
-       it  completely. Again, clicking a second time will turn the
-       line back to yellow.
+       If you are sure that a particular line segment is not part
+       of  the  loop,  you  can  click  the right mouse button to
+       remove it completely. Again, clicking a second  time  will
+       turn the line back to yellow.
 
-       (All the actions described in section 2.1 are  also  avail‐
+       (All  the actions described in section 2.1 are also avail-
        able.)
 
    Loopy parameters
-       These  parameters are available from the `Custom...' option
+       These parameters are available from the `Custom...' option
        on the `Type' menu.
 
        Width, Height
-              Size of grid, measured in number of  regions  across
-              and  down.  For square grids, it's clear how this is
-              counted; for other types of grid  you  may  have  to
+              Size  of grid, measured in number of regions across
+              and down. For square grids, it's clear how this  is
+              counted;  for  other  types of grid you may have to
               think a bit to see how the dimensions are measured.
 
        Grid type
-              Allows you to choose between a selection of types of
-              tiling. Some have all the faces  the  same  but  may
-              have  multiple  different  types of vertex (e.g. the
-              Cairo or Kites mode); others have all  the  vertices
-              the  same but may have different types of face (e.g.
-              the Great Hexagonal).  The  square,  triangular  and
-              honeycomb  grids  are  fully  regular,  and have all
-              their vertices and faces the same; this  makes  them
+              Allows you to choose between a selection  of  types
+              of tiling. Some have all the faces the same but may
+              have multiple different types of vertex  (e.g.  the
+              Cairo  or Kites mode); others have all the vertices
+              the same but may have different types of face (e.g.
+              the  Great  Hexagonal).  The square, triangular and
+              honeycomb grids are fully  regular,  and  have  all
+              their  vertices and faces the same; this makes them
               the least confusing to play.
 
        Difficulty

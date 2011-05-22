@@ -1,69 +1,71 @@
 Map
-       You are given a map consisting of a number of regions. Your
-       task  is to colour each region with one of four colours, in
-       such a way that no two regions sharing a boundary have  the
-       same  colour.  You  are  provided with some regions already
-       coloured, sufficient to make the remainder of the  solution
-       unique.
+       You  are  given  a  map consisting of a number of regions.
+       Your task is to  colour  each  region  with  one  of  four
+       colours,  in  such  a  way  that  no two regions sharing a
+       boundary have the same colour. You are provided with  some
+       regions already coloured, sufficient to make the remainder
+       of the solution unique.
 
-       Only regions which share a length of border are required to
-       be different colours. Two regions which meet  at  only  one
-       point  (i.e.  are  diagonally  separated)  may  be the same
+       Only regions which share a length of border  are  required
+       to  be  different  colours. Two regions which meet at only
+       one point (i.e. are diagonally separated) may be the  same
        colour.
 
-       I believe this puzzle  is  original;  I've  never  seen  an
-       implementation  of it anywhere else. The concept of a four-
-       colouring puzzle was suggested by Owen  Dunn;  credit  must
-       also  go  to  Nikoli  and to Verity Allan for inspiring the
-       train of thought that led to me realising Owen's suggestion
-       was  a viable puzzle. Thanks also to Gareth Taylor for many
-       detailed suggestions.
+       I  believe  this  puzzle  is  original; I've never seen an
+       implementation of it anywhere else. The concept of a four-
+       colouring  puzzle  was suggested by Owen Dunn; credit must
+       also go to Nikoli and to Verity Allan  for  inspiring  the
+       train  of  thought that led to me realising Owen's sugges-
+       tion was a viable puzzle. Thanks also to Gareth Taylor for
+       many detailed suggestions.
 
    Map controls
-       To colour a region, click  the  left  mouse  button  on  an
-       existing  region of the desired colour and drag that colour
+       To  colour  a  region,  click  the left mouse button on an
+       existing region of the desired colour and drag that colour
        into the new region.
 
-       (The program will always ensure the starting puzzle has  at
-       least  one  region  of  each colour, so that this is always
+       (The program will always ensure the starting puzzle has at
+       least one region of each colour, so that  this  is  always
        possible!)
 
-       If you need to clear a region, you can drag from  an  empty
-       region,  or  from the puzzle boundary if there are no empty
+       If  you need to clear a region, you can drag from an empty
+       region, or from the puzzle boundary if there are no  empty
        regions left.
 
-       Dragging a colour using the right mouse button will stipple
-       the  region  in that colour, which you can use as a note to
-       yourself that you think the region might be that colour.  A
-       region  can  contain  stipples in multiple colours at once.
-       (This is often useful at the harder difficulty levels.)
+       Dragging  a colour using the right mouse button will stip-
+       ple the region in that colour, which you can use as a note
+       to  yourself  that  you  think  the  region  might be that
+       colour. A region can contain stipples in multiple  colours
+       at  once.  (This  is often useful at the harder difficulty
+       levels.)
 
-       You can also use the cursor keys to move  around  the  map:
-       the  colour  of  the  cursor  indicates the position of the
-       colour you would drag (which is not obvious if you're on  a
-       region's  boundary,  since it depends on the direction from
-       which you approached the boundary). Pressing the return key
-       starts  a  drag of that colour, as above, which you control
-       with the cursor keys; pressing the return  key  again  fin‐
-       ishes the drag. The space bar can be used similarly to cre‐
-       ate a  stippled  region.  Double-pressing  the  return  key
-       (without  moving  the  cursor)  will clear the region, as a
-       drag from an empty region does: this  is  useful  with  the
-       cursor  mode  if you have filled the entire map in but need
+       You can also use the cursor keys to move around  the  map:
+       the  colour  of  the  cursor indicates the position of the
+       colour you would drag (which is not obvious if you're on a
+       region's  boundary, since it depends on the direction from
+       which you approached the boundary).  Pressing  the  return
+       key starts a drag of that colour, as above, which you con-
+       trol with the cursor keys; pressing the return  key  again
+       finishes  the drag. The space bar can be used similarly to
+       create a stippled region. Double-pressing the  return  key
+       (without  moving  the  cursor) will clear the region, as a
+       drag from an empty region does: this is  useful  with  the
+       cursor  mode if you have filled the entire map in but need
        to correct the layout.
 
-       If you press L during play, the game will toggle display of
-       a  number  in each region of the map. This is useful if you
-       want to discuss a particular puzzle instance with a  friend
-       - having an unambiguous name for each region is much easier
-       than trying to refer to them all by names such as `the  one
-       down and right of the brown one on the top border'.
+       If you press L during play, the game will  toggle  display
+       of  a  number in each region of the map. This is useful if
+       you want to discuss a particular puzzle  instance  with  a
+       friend  -  having  an  unambiguous name for each region is
+       much easier than trying to refer to them all by names such
+       as  `the  one  down  and right of the brown one on the top
+       border'.
 
-       (All  the  actions described in section 2.1 are also avail‐
+       (All the actions described in section 2.1 are also  avail-
        able.)
 
    Map parameters
-       These parameters are available from the `Custom...'  option
+       These parameters are available from the `Custom...' option
        on the `Type' menu.
 
        Width, Height
@@ -73,17 +75,17 @@ Map
               Number of regions in the generated map.
 
        Difficulty
-              In  `Easy' mode, there should always be at least one
-              region whose colour can be determined trivially.  In
-              `Normal'  and  `Hard'  modes,  you  will have to use
-              increasingly complex logic to deduce the  colour  of
-              some  regions.  However,  it will always be possible
+              In `Easy' mode, there should always be at least one
+              region whose colour can be determined trivially. In
+              `Normal' and `Hard' modes, you  will  have  to  use
+              increasingly  complex logic to deduce the colour of
+              some regions. However, it will always  be  possible
               without having to guess or backtrack.
 
-              In `Unreasonable' mode, the program will  feel  free
-              to generate puzzles which are as hard as it can pos‐
-              sibly make them: the only constraint  is  that  they
-              should  still have a unique solution. Solving Unrea‐
-              sonable puzzles may require guessing and  backtrack‐
-              ing.
+              In  `Unreasonable' mode, the program will feel free
+              to generate puzzles which are as  hard  as  it  can
+              possibly  make  them:  the  only constraint is that
+              they should still have a unique  solution.  Solving
+              Unreasonable puzzles may require guessing and back-
+              tracking.
 

@@ -1,26 +1,26 @@
 Untangle
-       You  are given a number of points, some of which have lines
-       drawn between them. You can move the points about arbitrar‐
-       ily;  your  aim  is  to position the points so that no line
-       crosses another.
+       You are given a number of points, some of which have lines
+       drawn  between  them.  You can move the points about arbi-
+       trarily; your aim is to position the  points  so  that  no
+       line crosses another.
 
-       I originally saw this in the form of a  Flash  game  called
+       I  originally  saw this in the form of a Flash game called
        Planarity [7], written by John Tantalo.
 
        [7]    http://home.cwru.edu/~jnt5/Planarity
 
    Untangle controls
-       To move a point, click on it with the left mouse button and
-       drag it into a new position.
+       To move a point, click on it with the  left  mouse  button
+       and drag it into a new position.
 
-       (All the actions described in section 2.1 are  also  avail‐
+       (All  the actions described in section 2.1 are also avail-
        able.)
 
    Untangle parameters
-       There  is only one parameter available from the `Custom...'
+       There is only one parameter available from the `Custom...'
        option on the `Type' menu:
 
        Number of points
-              Controls the size of the puzzle, by  specifying  the
+              Controls  the size of the puzzle, by specifying the
               number of points in the generated graph.
 

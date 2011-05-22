@@ -1,60 +1,62 @@
 Slant
-       You have a grid of squares. Your aim is to draw a  diagonal
-       line  through  each  square, and choose which way each line
+       You have a grid of squares. Your aim is to draw a diagonal
+       line through each square, and choose which way  each  line
        slants so that the following conditions are met:
 
-       ·      The diagonal lines never form a loop.
+       o      The diagonal lines never form a loop.
 
-       ·      Any point with a circled number has  precisely  that
-              many  lines  meeting at it. (Thus, a 4 is the centre
-              of a cross shape, whereas a zero is the centre of  a
-              diamond  shape - or rather, a partial diamond shape,
-              because a zero can never appear in the middle of the
-              grid because that would immediately cause a loop.)
+       o      Any  point with a circled number has precisely that
+              many lines meeting at it. (Thus, a 4 is the  centre
+              of a cross shape, whereas a zero is the centre of a
+              diamond shape - or rather, a partial diamond shape,
+              because  a  zero  can never appear in the middle of
+              the grid because that  would  immediately  cause  a
+              loop.)
 
        Credit for this puzzle goes to Nikoli [8].
 
-       [8]    http://www.nikoli.co.jp/puzzles/39/index.htm     (in
+       [8]    http://www.nikoli.co.jp/puzzles/39/index.htm    (in
               Japanese)
 
    Slant controls
-       Left-clicking in a blank square will place a  \  in  it  (a
-       line leaning to the left, i.e. running from the top left of
-       the square to the bottom right). Right-clicking in a  blank
-       square  will place a / in it (leaning to the right, running
-       from top right to bottom left).
+       Left-clicking in a blank square will place a \  in  it  (a
+       line  leaning  to the left, i.e. running from the top left
+       of the square to the bottom right).  Right-clicking  in  a
+       blank  square  will place a / in it (leaning to the right,
+       running from top right to bottom left).
 
-       Continuing to click either button will  cycle  between  the
-       three  possible  square  contents.  Thus, if you left-click
-       repeatedly in a blank square it will change from blank to \
-       to  /  back to blank, and if you right-click repeatedly the
-       square will change from blank to /  to  \  back  to  blank.
-       (Therefore,  you can play the game entirely with one button
+       Continuing to click either button will cycle  between  the
+       three  possible  square  contents. Thus, if you left-click
+       repeatedly in a blank square it will change from blank  to
+       \  to  /  back to blank, and if you right-click repeatedly
+       the square will change from blank to / to \ back to blank.
+       (Therefore, you can play the game entirely with one button
        if you need to.)
 
-       You can also use the cursor keys to move around  the  grid.
-       Pressing  the  return  or space keys will place a \ or a /,
+       You can also use the cursor keys to move around the  grid.
+       Pressing  the  return or space keys will place a \ or a /,
        respectively, and will then cycle them as above.
 
-       (All the actions described in section 2.1 are  also  avail‐
+       (All the actions described in section 2.1 are also  avail-
        able.)
 
    Slant parameters
-       These  parameters are available from the `Custom...' option
+       These parameters are available from the `Custom...' option
        on the `Type' menu.
 
        Width, Height
               Size of grid in squares.
 
        Difficulty
-              Controls the difficulty of the generated puzzle.  At
-              Hard  level, you are required to do deductions based
-              on knowledge of relationships between squares rather
-              than  always being able to deduce the exact contents
-              of one square at a time.  (For  example,  you  might
-              know  that  two squares slant in the same direction,
-              even if you don't yet know what that  direction  is,
-              and  this might enable you to deduce something about
-              still other squares.) Even at Hard level,  guesswork
-              and backtracking should never be necessary.
+              Controls the difficulty of the generated puzzle. At
+              Hard level, you are required to do deductions based
+              on  knowledge  of  relationships  between   squares
+              rather  than  always being able to deduce the exact
+              contents of one square at a time. (For example, you
+              might  know  that  two  squares  slant  in the same
+              direction, even if you don't  yet  know  what  that
+              direction  is,  and this might enable you to deduce
+              something about still other squares.) Even at  Hard
+              level,  guesswork  and backtracking should never be
+              necessary.
 
