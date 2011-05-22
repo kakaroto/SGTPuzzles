@@ -142,7 +142,6 @@ typedef struct {
   int nlines;
   char **lines;
   int start_line;
-  cairo_surface_t *background;
 } PuzzleHelp;
 
 struct frontend {
@@ -181,6 +180,7 @@ struct frontend {
   SaveData save_data;
   XMBEvent xmb;
   PuzzleHelp* help;
+  cairo_surface_t *help_background;
 };
 
 typedef struct {

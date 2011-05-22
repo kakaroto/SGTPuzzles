@@ -327,6 +327,44 @@ handle_pad (frontend *fe, padData *paddata)
   return TRUE;
 }
 
+
+static void
+create_help_background (frontend *fe)
+{
+   double width = fe->width * 0.8;
+   double height = fe->height * 0.8;
+   cairo_pattern_t *linpat = NULL;
+   cairo_t *cr;
+
+   /* Setup background */
+   fe->help_background = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+       width, height);
+   cr = cairo_create (fe->help_background);
+
+   linpat = cairo_pattern_create_linear (width, 0, width, height);
+
+   cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.3, 0.3, 0.3);
+   cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.8, 0.8, 0.8);
+
+   cairo_utils_clip_round_edge (cr, width, height, 20, 20, 20);
+   cairo_set_source (cr, linpat);
+   cairo_paint (cr);
+   cairo_pattern_destroy (linpat);
+
+   linpat = cairo_pattern_create_linear (width, 0, width, height);
+
+   cairo_pattern_add_color_stop_rgb (linpat, 0.0, 0.03, 0.07, 0.10);
+   cairo_pattern_add_color_stop_rgb (linpat, 0.1, 0.04, 0.09, 0.16);
+   cairo_pattern_add_color_stop_rgb (linpat, 0.5, 0.05, 0.20, 0.35);
+   cairo_pattern_add_color_stop_rgb (linpat, 1.0, 0.06, 0.55, 0.75);
+
+   cairo_utils_clip_round_edge (cr, width, height, 22, 22, 20);
+   cairo_set_source (cr, linpat);
+   cairo_paint (cr);
+   cairo_pattern_destroy (linpat);
+   cairo_destroy (cr);
+}
+
 void
 calculate_puzzle_size (frontend *fe)
 {
@@ -460,6 +498,8 @@ new_window ()
   fe->height = height;
 
   create_puzzles_menu (fe);
+  create_help_background (fe);
+
 
   fe->redraw = TRUE ;
 
@@ -491,6 +531,7 @@ destroy_window (frontend *fe)
   cairo_surface_destroy (fe->puzzles_menu.frame);
 
   free_help (fe);
+  cairo_surface_destroy (fe->help_background);
 
   sfree (fe);
 }
