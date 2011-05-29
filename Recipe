@@ -289,11 +289,13 @@ clean:
 %.pkg: %.self
 	mkdir -p pkg/USRDIR
 	cp $(ICON0) pkg/
-	$(SELF_NPDRM) $(basename $<).elf pkg/USRDIR/EBOOT.BIN $(CONTENTID) >> /dev/null
+	$(FSELF) $(basename $<).elf pkg/USRDIR/EBOOT.BIN >> /dev/null
 	$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
 	if test -n "$(PKGFILES)" -a -d "$(PKGFILES)"; then cp -rf $(PKGFILES)/ pkg/USRDIR/; fi
 	$(PKG) --contentid $(CONTENTID) pkg/ $@ >> /dev/null
-	cp $@ $(basename $@).geohot.pkg
+	rm -f pkg/USRDIR/EBOOT.BIN
+	$(SELF_NPDRM) $(basename $<).elf pkg/USRDIR/EBOOT.BIN $(CONTENTID) >> /dev/null
+	$(PKG) --contentid $(CONTENTID) pkg/ $(basename $@).geohot.pkg >> /dev/null
 	$(PACKAGE_FINALIZE) $(basename $@).geohot.pkg
 	rm -fr pkg
 
