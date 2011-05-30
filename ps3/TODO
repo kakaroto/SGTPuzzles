@@ -5,6 +5,7 @@ High priority :
 - Fix game help by centring text correctly, and respecting font_opt.height
 - Add background music
 - Test/Allow custom music to be played
+- Add a "theme selection" menu and a system for designing themes for the game
 
 Medium priority :
 - Add a 'resize screen' at boot (some tvs crop the left size of the screen)
